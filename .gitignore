@@ -1,2 +1,7 @@
 _site/
 __pycache__/
+android/.gradle/
+android/**/build/
+android/local.properties
+*.apk
+artifacts/

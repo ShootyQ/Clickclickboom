@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+dependencies {
+    implementation 'androidx.activity:activity:1.10.1'
+}
+
+android {
+    namespace 'com.shootyq.clickclickboom'
+    compileSdk 36
+    buildFeatures { buildConfig true }
+
+    defaultConfig {
+        applicationId 'com.shootyq.clickclickboom'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+    sourceSets.main.assets.srcDir layout.buildDirectory.dir('generated/gameAssets')
+}
+
+def bundleGame = tasks.register('bundleGame', Copy) {
+    from rootProject.file('../index.html')
+    into layout.buildDirectory.dir('generated/gameAssets')
+    doFirst {
+        if (!rootProject.file('../index.html').exists()) {
+            throw new GradleException('Run python3 build.py from the repository root first.')
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn bundleGame }

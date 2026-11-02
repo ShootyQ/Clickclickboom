@@ -1,5 +1,9 @@
 # Click Click Boom
 
+The home menu has Play/Continue, device statistics, and a Remove Ads information screen. Purchases and ads are not active in this test version. Back/Escape returns to the menu without resetting a run.
+
+For an installable offline Android test app, see [Android testing](android/TESTING.md). GitHub Actions builds a debug APK on pushes to `main`. Android compilation and lint run independently of the Pages deployment.
+
 Playable browser prototype of the Android game concept. Open `index.html` directly; it embeds all scripts and sprites. Tap the red blob to build a surviving run. The goal is **50,000 surviving clicks**, with a **1-in-5,000,000 probability of finishing a fresh run**. Each tap has the same independent explosion probability, calculated as `-expm1(-log(5000000) / 50000)` (about 1 in 3,242 taps). This is a single hardcore mode. An exploding click counts toward lifetime taps but not your surviving score. Explosions reset the run, preserve your personal best, and leave puddles until you choose to restart. Fifty thousand surviving clicks wins.
 
 Progress is saved in browser local storage when available. Storage belongs to the current browser and file origin; it is not an account or cloud save. Global rankings and Android packaging are not implemented yet. Scores are local and untrusted.
