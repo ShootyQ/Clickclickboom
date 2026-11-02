@@ -2,6 +2,8 @@
 
 The home menu has Play/Continue, device statistics, and a Remove Ads information screen. Purchases and ads are not active in this test version. Back/Escape returns to the menu without resetting a run.
 
+The supplied WAV files in `assets/audio/` are embedded in both the standalone web page and Android app. Surviving taps play `tap.wav`; explosions play `exploding.wav` at the flash frame (260 ms) and `explosionlanding.wav` at the falling/landing frame (520 ms). Sound defaults on, unlocks after a user gesture, and has a saved toggle available on every screen. Muting, leaving gameplay, restarting, or hiding the page cancels active and scheduled sounds. Rapid-tap overlap is bounded to six voices with a peak compressor. If audio is unsupported, gameplay still works silently. Reloading a dead run does not replay its explosion.
+
 For an installable offline Android test app, see [Android testing](android/TESTING.md). GitHub Actions builds a debug APK on pushes to `main`. Android compilation and lint run independently of the Pages deployment.
 
 Playable browser prototype of the Android game concept. Open `index.html` directly; it embeds all scripts and sprites. Tap the red blob to build a surviving run. The goal is **50,000 surviving clicks**, with a **1-in-5,000,000 probability of finishing a fresh run**. Each tap has the same independent explosion probability, calculated as `-expm1(-log(5000000) / 50000)` (about 1 in 3,242 taps). This is a single hardcore mode. An exploding click counts toward lifetime taps but not your surviving score. Explosions reset the run, preserve your personal best, and leave puddles until you choose to restart. Fifty thousand surviving clicks wins.

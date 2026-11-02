@@ -8,6 +8,9 @@ shell = (root / 'src/shell.html').read_text()
 core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
 milestone_core = (root / 'src/milestones.js').read_text()
+audio_core = (root / 'src/audio.js').read_text()
+sounds = {name: base64.b64encode((root / 'assets/audio' / filename).read_bytes()).decode()
+          for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 milestones = json.loads((root / 'content/milestones.json').read_text())
 assert len(milestones) == 50, 'Expected 50 milestones'
 assert all(len(lines) == 10 and len(set(lines)) == 10 for lines in milestones.values()), 'Each milestone needs 10 unique lines'
@@ -27,6 +30,7 @@ sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes(
 (root / 'index.html').write_text(shell.replace('/* GAME_CORE */', core)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
+    .replace('/* AUDIO_CORE */', audio_core).replace('/* AUDIO_FILES */', json.dumps(sounds))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* SPRITE_DATA */', 'data:image/png;base64,' + sprite))
 print('Built index.html with embedded game logic and PNG sprites.')
