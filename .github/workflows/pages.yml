@@ -32,6 +32,7 @@ jobs:
         run: |
           node tests/game.test.js
           node tests/story.test.js
+          node tests/milestones.test.js
       - name: Build standalone game
         run: |
           python3 build.py
