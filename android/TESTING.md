@@ -4,7 +4,7 @@ This is an **offline debug build**, not a Google Play release. It wraps the same
 
 ## Install on a phone
 
-Download the `squish-squish-spat-android-debug` artifact from the repository's **Actions → Build Android test APK** workflow, unzip it, and open `app-debug.apk` on your Android device. Allow installation from your browser or file manager when Android asks. The test app is named **Squish Squish Spat**, with package ID `com.shootyq.clickclickboom.debug`.
+Download the `squish-squish-splat-android-debug` artifact from the repository's **Actions → Build Android test APK** workflow, unzip it, and open `app-debug.apk` on your Android device. Allow installation from your browser or file manager when Android asks. The test app is named **Squish Squish Splat**, with package ID `com.shootyq.clickclickboom.debug`.
 
 Alternatively, enable Developer options and USB debugging, connect the device, then run:
 

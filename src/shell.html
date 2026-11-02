@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name="theme-color" content="#fff4df"><title>Squish Squish Spat</title>
+<meta name="theme-color" content="#fff4df"><title>Squish Squish Splat</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff4df;color:#54241f;font:16px system-ui,sans-serif}main{max-width:480px;margin:auto;padding:24px 20px;text-align:center}header{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;letter-spacing:2px}.badge{background:#ffe1d1;border-radius:20px;padding:8px;letter-spacing:0;color:#9a3829}.goal{margin:32px 0 0;font-size:12px;letter-spacing:3px}.score{font-size:clamp(52px,15vw,78px);font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}.target{color:#95695b;font-size:14px}.speech{margin:24px 0 0;min-height:92px;display:grid;place-content:center;background:#fffdf7;border:2px solid #edd6bc;border-radius:24px;padding:16px;font-weight:650;line-height:1.5}.blob{display:block;margin:0 auto;border:0;background:transparent;padding:0;width:min(100%,340px);touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}.blob:focus-visible{outline:3px solid #a43b2a;border-radius:40px}canvas{display:block;width:100%;height:auto}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f5e7d2;border-radius:16px;padding:14px 4px}.stat span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px}.stat strong{display:block;font-size:22px;margin-top:5px;font-variant-numeric:tabular-nums}.action{background:#d93928;color:white;border:0;border-radius:18px;padding:16px 28px;font:750 17px system-ui;cursor:pointer;margin:16px 0}.action:disabled{opacity:.5;cursor:default}[hidden]{display:none!important}.hint{font-size:13px;color:#95695b;margin:0 0 20px}.notice{font-size:12px;line-height:1.6;color:#95695b;margin:22px 0}#save-warning{color:#a12a20}footer{margin-top:20px;font-size:11px;letter-spacing:1px;color:#95695b}
 
@@ -9,12 +9,12 @@
 
 .audio-panel{margin:12px 0;text-align:left;border:1px solid #e6cdb2;border-radius:16px;background:#fffaf0;padding:12px 16px}.audio-panel summary{cursor:pointer;font-size:14px;font-weight:750;min-height:26px}.audio-panel label{display:flex;justify-content:space-between;font-weight:650;font-size:14px;margin:18px 0 6px}.audio-panel input{width:100%;height:36px;accent-color:#d93928;cursor:pointer}.audio-panel p{font-size:12px;color:#95695b;margin:8px 0}
 </style>
-<main><header><span>SQUISH SQUISH SPAT</span><span class="badge">HARDCORE · 1 IN 5 MILLION</span></header>
+<main><header><span>SQUISH SQUISH SPLAT</span><span class="badge">HARDCORE · 1 IN 5 MILLION</span></header>
 <div style="text-align:right;margin-top:14px"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button></div>
 <details class="audio-panel" id="audio-settings"><summary>Music &amp; sound effects</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details>
 <section id="menu-screen">
 <p class="eyebrow" style="margin-top:32px">ONE LITTLE GUY. TERRIBLE ODDS.</p>
-<h1 class="menu-title">SQUISH SQUISH<br><span>SPAT.</span></h1>
+<h1 class="menu-title">SQUISH SQUISH<br><span>SPLAT.</span></h1>
 <div class="menu-record">PERSONAL BEST <span id="menu-best">0</span></div>
 <canvas class="menu-art" id="menu-canvas" width="320" height="320" aria-label="Your cheerful red blob"></canvas>
 <p class="menu-quote">“I've already picked out our trophy.”</p>
