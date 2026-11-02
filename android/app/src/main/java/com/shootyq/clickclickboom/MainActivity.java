@@ -85,13 +85,17 @@ public final class MainActivity extends ComponentActivity {
     }
 
     @Override protected void onPause() {
+        game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(true)", null);
         game.onPause();
         super.onPause();
     }
 
     @Override protected void onResume() {
         super.onResume();
-        if (game != null) game.onResume();
+        if (game != null) {
+            game.onResume();
+            game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(false)", null);
+        }
     }
 
     @Override protected void onDestroy() {
