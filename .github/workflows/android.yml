@@ -33,7 +33,14 @@ jobs:
           node tests/milestones.test.js
           python3 build.py
       - name: Install Android platform
-        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+        run: |
+          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          if [ ! -f "$sdk_root/platforms/android-36/android.jar" ] || [ ! -f "$sdk_root/build-tools/36.0.0/aapt2" ]; then
+            sdk_manager=$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)
+            test -n "$sdk_manager"
+            "$sdk_manager" --sdk_root="$sdk_root" 'platforms;android-36' 'build-tools;36.0.0'
+          fi
       - name: Build and lint Android app
         working-directory: android
         run: ./gradlew --no-daemon --max-workers=2 assembleDebug lintDebug
