@@ -551,6 +551,18 @@
     "Ten thousand! That comma is doing important work.",
     "Ten thousand. Thanks for sticking with your little guy."
   ],
+  "25000": [
+    "TWENTY-FIVE THOUSAND! I need to sit down inside my own shape.",
+    "Twenty-five thousand clicks. Halfway to the dream, all of my respect.",
+    "Twenty-five thousand! This stopped being casual quite some time ago.",
+    "Twenty-five thousand. That finger deserves a tiny pension.",
+    "Twenty-five thousand clicks! I'm saving this in every drawer I own.",
+    "Twenty-five thousand! Five digits. We have become a sizeable number.",
+    "Twenty-five thousand. You stuck around. Look what happened.",
+    "Twenty-five thousand clicks! Please imagine a crowd large enough to hear this.",
+    "Twenty-five thousand! I would hug your finger, but we're at work.",
+    "Twenty-five thousand. I don't know how to act cool about you anymore."
+  ],
   "42000": [
     "Forty-two thousand! The answer brought three zeroes.",
     "Forty-two thousand clicks. That's a galaxy-sized towel requirement.",
@@ -563,6 +575,18 @@
     "Forty-two thousand. A very long way to say forty-two.",
     "Forty-two thousand! Infinite space, finite finger. Excellent work."
   ],
+  "50000": [
+    "FIFTY THOUSAND. You did it. I'm still here. We're both still here.",
+    "FIFTY THOUSAND! Somebody tell Gary. Somebody tell the moon. Tell EVERYONE.",
+    "Fifty thousand clicks. I saved a speech. It's just your name followed by cheering.",
+    "FIFTY THOUSAND! I would like to thank your finger and all my remaining jelly.",
+    "Fifty thousand. No puddle. Look at us. Look at what you did.",
+    "FIFTY THOUSAND! The tiny trophy shop has requested dimensions.",
+    "Fifty thousand clicks. I didn't think I'd get to say this bit. Thank you.",
+    "FIFTY THOUSAND! Every little poke brought us here. Every single one.",
+    "Fifty thousand. I'm going to stand very still while you take a picture.",
+    "FIFTY THOUSAND! We made it, finger person. We actually made it."
+  ],
   "69420": [
     "Sixty-nine thousand, four hundred and twenty. The internet has stood up.",
     "Sixty-nine four-twenty. Yes. We can all go home proud.",
@@ -574,29 +598,5 @@
     "Sixty-nine four-twenty. Somehow this was on the itinerary.",
     "Sixty-nine thousand, four hundred and twenty! Please laugh responsibly.",
     "Sixty-nine four-twenty. Nice. And a little hungry. Moving on."
-  ],
-  "100000": [
-    "A HUNDRED THOUSAND! I need to sit down inside my own shape.",
-    "One hundred thousand clicks. One tenth of the dream, all of my respect.",
-    "A hundred thousand! This stopped being casual quite some time ago.",
-    "One hundred thousand. That finger deserves a tiny pension.",
-    "A hundred thousand clicks! I'm saving this in every drawer I own.",
-    "One hundred thousand! Six digits. We have become a sizeable number.",
-    "A hundred thousand. You stuck around. Look what happened.",
-    "One hundred thousand clicks! Please imagine a crowd large enough to hear this.",
-    "A hundred thousand! I would hug your finger, but we're at work.",
-    "One hundred thousand. I don't know how to act cool about you anymore."
-  ],
-  "1000000": [
-    "ONE MILLION. You did it. I'm still here. We're both still here.",
-    "A MILLION! Somebody tell Gary. Somebody tell the moon. Tell EVERYONE.",
-    "One million clicks. I saved a speech. It's just your name followed by cheering.",
-    "ONE MILLION! I would like to thank your finger and all my remaining jelly.",
-    "A million. No puddle. Look at us. Look at what you did.",
-    "ONE MILLION! The tiny trophy shop has requested dimensions.",
-    "One million clicks. I didn't think I'd get to say this bit. Thank you.",
-    "A MILLION! Every little poke brought us here. Every single one.",
-    "One million. I'm going to stand very still while you take a picture.",
-    "ONE MILLION! We made it, finger person. We actually made it."
   ]
 }

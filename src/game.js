@@ -1,7 +1,9 @@
 (function (root) {
   'use strict';
-  const GOAL = 1000000;
-  const EXPLOSION_CHANCE = 1 / 20;
+  const GOAL = 50000;
+  const FINISH_ODDS = 5000000;
+  // (1 - p)^GOAL = 1 / FINISH_ODDS. expm1 avoids cancellation.
+  const EXPLOSION_CHANCE = -Math.expm1(-Math.log(FINISH_ODDS) / GOAL);
   function restore(raw) {
     const integer = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
     const data = raw && typeof raw === 'object' ? raw : {};
@@ -23,7 +25,7 @@
     return { state: next, event: next.status === 'won' ? 'win' : 'tap' };
   }
   function restart(state) { return { ...state, run: 0, status: 'alive' }; }
-  const api = { GOAL, EXPLOSION_CHANCE, restore, tap, restart };
+  const api = { GOAL, FINISH_ODDS, EXPLOSION_CHANCE, restore, tap, restart };
   if (typeof module !== 'undefined') module.exports = api;
   else root.BlobGame = api;
 })(globalThis);
