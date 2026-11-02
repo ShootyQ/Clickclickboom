@@ -1,4 +1,4 @@
-# Click Click Boom
+# Squish Squish Spat
 
 The home menu has Play/Continue, device statistics, and a Remove Ads information screen. Purchases and ads are not active in this test version. Back/Escape returns to the menu without resetting a run.
 
@@ -19,3 +19,5 @@ Stories live in `stories/*.md`: a title heading followed by blank-line-separated
 A new run chooses a random story at its opening. Reaching the end selects another story (excluding the current one when possible). With just one story, it restarts. Surviving runs retain their bookmark across reloads. Explosions erase the story bookmark along with the run; the next run selects a story from the beginning. Personal best and lifetime stats remain. Milestone interruptions keep the current bookmark and replay that beat after the interruption. Rapid taps score normally but do not skip unread dialogue or queue text.
 
 `content/milestones.json` contains 50 milestone numbers with ten individually written reactions each. Milestones at 100 or below roll a 1-in-7 speaking chance each time reached; higher milestones speak when the dialogue channel is available. Reactions do not replace an active interruption and have a 4.5-second cooldown. Missed milestones are dropped, never queued. After a comment, the interrupted story beat is replayed in full on the next eligible tap. The previous spoken variant for each milestone is saved across runs and excluded from the next selection. Explosions always take priority; the 50,000-click win always gets its own reaction. Run `node tests/milestones.test.js` to validate content and selection rules.
+
+The display name is **Squish Squish Spat**. The original Android package ID and browser storage key are retained so existing installs and saved progress continue working. The GitHub repository and Pages URL also stay at their existing addresses.
