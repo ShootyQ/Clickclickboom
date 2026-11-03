@@ -25,3 +25,9 @@ A new run chooses a random story at its opening. Reaching the end selects anothe
 The display name is **Squish Squish Splat**. The original debug Android package ID and browser storage key are retained so existing test installs and saved progress continue working. The Play release uses `com.squishsquishsplat.myapp`; its signed AAB is intended for Play Console internal testing. The GitHub repository and Pages URL stay at their existing addresses. See `android/TESTING.md` for upload signing and CI secrets.
 
 `python3 build.py` produces two formats: the legacy standalone `index.html`, and a lightweight `dist/index.html` with separate PNG/WAV/MP3 files. GitHub Pages and Android use **dist/**. Android streams those packaged files via `WebViewAssetLoader` at the existing save origin; it does not read the standalone base64 HTML into the Java heap. Build tests enforce a startup-page size below 1 MiB and verify every asset reference. Android CI launches an API 36 emulator and must reach the menu with the logo and SFX decoded.
+
+### Mobile layout
+
+Screens fit the viewport with safe-area padding and a reserved 50 px top banner. `window.setAdBannerHeight(height)` adjusts the reservation for a future adaptive banner (0–120 px); no advertising SDK is connected yet. Audio settings open from the music-note button without shifting the game. Local Patrick Hand and Lilita One fonts and their OFL licenses are bundled in `assets/fonts/`.
+
+After `python3 build.py`, run `node tests/mobile-layout.cjs` with Playwright installed (or set `PLAYWRIGHT_MODULE` to its module path). Set `CHROMIUM_PATH` if needed. This checks all screens, long story text, interruptions, restart controls, and audio controls across seven portrait/landscape sizes with 50 px and 90 px banner reservations.

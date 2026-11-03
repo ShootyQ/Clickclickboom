@@ -6,12 +6,16 @@ import shutil
 
 root = Path(__file__).resolve().parent
 shell = (root / 'src/shell.html').read_text()
-style = (root / 'src/style.css').read_text()
+base_style = (root / 'src/style.css').read_text() + '\n' + (root / 'src/viewport.css').read_text()
+style = base_style
+font_licenses = '\n'.join((root / 'assets/fonts' / name).read_text() for name in ['PatrickHand-OFL.txt', 'LilitaOne-OFL.txt'])
 buttons = base64.b64encode((root / 'assets/ui/menu-buttons.png').read_bytes()).decode()
 logo = base64.b64encode((root / 'assets/ui/logo.png').read_bytes()).decode()
 panel = base64.b64encode((root / 'assets/ui/game-panel.png').read_bytes()).decode()
 style = style.replace('/* BUTTON_ART */', 'data:image/png;base64,' + buttons)
 style = style.replace('/* GAME_PANEL_ART */', 'data:image/png;base64,' + panel)
+for marker, name in [('/* HAND_FONT */', 'PatrickHand-Regular.ttf'), ('/* TITLE_FONT */', 'LilitaOne-Regular.ttf')]:
+    style = style.replace(marker, 'data:font/ttf;base64,' + base64.b64encode((root / 'assets/fonts' / name).read_bytes()).decode())
 core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
 milestone_core = (root / 'src/milestones.js').read_text()
@@ -37,7 +41,7 @@ assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
 def render(page_style, page_logo, page_sounds, page_music, page_sprite):
-    return (shell.replace('/* GAME_CORE */', core)
+    return (shell.replace('/* GAME_CORE */', core).replace('/* FONT_LICENSES */', font_licenses)
     .replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
@@ -53,13 +57,15 @@ def render(page_style, page_logo, page_sounds, page_music, page_sprite):
 # in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
 dist = root / 'dist'
 dist.mkdir(exist_ok=True)
-streaming_style = (root / 'src/style.css').read_text().replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png')
+streaming_style = base_style.replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png').replace('/* HAND_FONT */', 'assets/fonts/PatrickHand-Regular.ttf').replace('/* TITLE_FONT */', 'assets/fonts/LilitaOne-Regular.ttf')
 streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3')]]
 (dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png'))
 asset_paths = ['blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
                'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
-               'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3']
+               'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3',
+               'fonts/PatrickHand-Regular.ttf', 'fonts/LilitaOne-Regular.ttf',
+               'fonts/PatrickHand-OFL.txt', 'fonts/LilitaOne-OFL.txt']
 for relative in asset_paths:
     destination = dist / 'assets' / relative
     destination.parent.mkdir(parents=True, exist_ok=True)

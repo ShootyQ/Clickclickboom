@@ -1,0 +1,199 @@
+@font-face {
+  font-family: 'Patrick Hand'; src: url('/* HAND_FONT */') format('truetype'); font-display: swap;
+}
+@font-face {
+  font-family: 'Lilita One'; src: url('/* TITLE_FONT */') format('truetype'); font-display: swap;
+}
+:root { --ad-banner-height: 50px; --edge: 14px; }
+html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { font-family: 'Patrick Hand', cursive; font-size: 17px; }
+main {
+  width: 100%; max-width: 470px; height: 100vh; height: 100dvh;
+  padding: calc(8px + env(safe-area-inset-top)) var(--edge) calc(8px + env(safe-area-inset-bottom));
+  display: grid; grid-template-rows: var(--ad-banner-height) 44px minmax(0, 1fr) 14px; gap: 4px;
+}
+.ad-slot {
+  grid-row: 1; min-height: 0; margin-inline: calc(-1 * var(--edge));
+  display: grid; place-items: center; overflow: hidden;
+  background: #efe4cb88; border-bottom: 1px dashed #c6aa76;
+}
+.ad-slot span { font-size: 11px; color: #ac956e; letter-spacing: 1px; }
+header { grid-row: 2; flex-wrap: nowrap; gap: 6px; min-height: 0; letter-spacing: 0; }
+.brand-name { flex: 1; min-width: 0; text-align: left; white-space: nowrap; font: 15px/1 'Lilita One', sans-serif; }
+header .badge { flex-shrink: 0; font: 13px/1 'Patrick Hand', cursive; letter-spacing: 0; padding: 7px 8px; }
+.audio-open {
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  border: 1.5px solid #805136; border-radius: 10px 14px 8px 12px;
+  color: var(--ink); background: #fff1c5; box-shadow: 1px 3px 0 #a77c4233;
+  font: 25px/1 'Patrick Hand', cursive;
+}
+.audio-open:active { transform: translateY(2px); }
+main > section:not([hidden]) { grid-row: 3; min-height: 0; min-width: 0; }
+footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter-spacing: 1px; }
+.back, .action, .secondary, .panel-title, .menu-buttons .art-button { font-family: 'Lilita One', sans-serif; font-weight: 400; }
+.back { font-size: 15px; }
+.eyebrow, .goal, .game-nav { font-family: 'Patrick Hand', cursive; }
+#menu-screen {
+  display: grid;
+  grid-template-areas: 'eyebrow' 'logo' 'record' 'hero' 'quote' 'buttons' 'bottom';
+  grid-template-rows: 16px minmax(60px, 1fr) 28px minmax(60px, 1.05fr) 28px clamp(144px, 25dvh, 210px) 28px;
+  gap: 4px; align-items: stretch;
+}
+.menu-eyebrow { grid-area: eyebrow; margin: 0; font-size: 11px; line-height: 16px; letter-spacing: 1.3px; }
+.menu-title { grid-area: logo; height: auto; min-height: 0; display: grid; place-items: center; overflow: hidden; }
+.menu-title img { width: 100%; height: 100%; object-fit: contain; min-width: 0; min-height: 0; transform: none; }
+.menu-record { grid-area: record; justify-self: center; align-self: center; padding: 5px 12px; font: 13px/16px 'Patrick Hand', cursive; }
+.hero-stage { grid-area: hero; width: 100%; height: 100%; min-height: 0; max-width: 350px; margin: 0 auto; }
+.hero-stage .menu-art { width: auto; height: 100%; max-height: 100%; max-width: 100%; object-fit: contain; margin: auto; }
+.hero-stage::after { height: 10px; bottom: 4px; }
+.hero-note { font: 12px/1.2 'Patrick Hand', cursive; top: 12px; }
+.hero-note::after { font-size: 22px; }
+.hero-star { top: 10px; font-size: 25px; }
+.menu-quote { grid-area: quote; margin: 0; padding: 4px 8px; justify-self: center; font: 14px/18px 'Patrick Hand', cursive; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.menu-buttons { grid-area: buttons; height: 100%; min-height: 0; grid-template-rows: repeat(3, minmax(44px, 1fr)); gap: 2px; }
+.menu-buttons .art-button { min-height: 44px; height: 100%; aspect-ratio: auto; font-size: clamp(19px, 3.2dvh, 26px); padding-bottom: 3px; letter-spacing: 0; }
+.menu-buttons .art-ads { font-size: clamp(18px, 2.8dvh, 23px); }
+.menu-bottom { grid-area: bottom; margin: 0; font: 12px/14px 'Patrick Hand', cursive; }
+.menu-bottom strong { font-weight: 400; }
+#game-screen {
+  position: relative; display: grid;
+  grid-template-areas: 'nav' 'score' 'conversation' 'blob' 'hint' 'stats';
+  grid-template-rows: 44px clamp(76px, 11.5dvh, 102px) max-content minmax(44px, 1fr) 14px 48px;
+  gap: 4px;
+}
+.game-nav { grid-area: nav; margin: 0; }
+.game-nav #game-menu { min-height: 44px; height: 44px; min-width: 110px; font-size: 15px; }
+.game-nav > span { font: 12px/1 'Patrick Hand', cursive; letter-spacing: 1px; }
+.score-plaque { grid-area: score; min-height: 0; margin: 0 2px; padding: 3px 10px; border-width: 10px; border-image-width: 16px; }
+.score-plaque .goal { font: 10px/12px 'Patrick Hand', cursive; letter-spacing: 1px; margin: 0; }
+.score-plaque .score { font: clamp(30px, 5.6dvh, 48px)/1 'Lilita One', sans-serif; letter-spacing: 0; }
+.score-plaque .target { font: 12px/12px 'Patrick Hand', cursive; }
+.score-spark { top: 8px; right: 5px; font-size: 15px; }
+#conversation { grid-area: conversation; min-height: 0; margin: 0; display: grid; grid-template-areas: 'ribbon' 'title' 'speech'; grid-template-rows: 24px 16px auto; gap: 2px; }
+.story-ribbon { grid-area: ribbon; padding: 0 6px; min-height: 0; }
+#story-mode { font: 12px/14px 'Patrick Hand', cursive; padding: 3px 9px; letter-spacing: .5px; }
+.story-doodle { width: 23px; height: 23px; font-size: 16px; }
+.story-title { grid-area: title; margin: 0; padding: 0 6px; font: 13px/16px 'Patrick Hand', cursive; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#game-screen .speech { grid-area: speech; min-height: 58px; padding: 6px 10px; border-width: 10px; border-image-width: 16px; font: clamp(14px, 2.2dvh, 18px)/1.2 'Patrick Hand', cursive; }
+.speech::after { bottom: -11px; width: 12px; height: 12px; }
+#conversation[data-state='aside'] { grid-template-areas: 'ribbon' 'title' 'pause' 'speech'; grid-template-rows: 24px 16px 30px auto; }
+.paused-story { grid-area: pause; min-height: 0; margin: 0 8px -4px; padding: 2px 8px 5px; overflow: hidden; }
+.paused-story span { display: block; font: 9px/10px 'Patrick Hand', cursive; letter-spacing: .5px; }
+.paused-story p { margin: 0; font: 12px/13px 'Patrick Hand', cursive; -webkit-line-clamp: 1; }
+#conversation[data-state='resumed'] { grid-template-areas: 'ribbon' 'title' 'speech' 'return'; grid-template-rows: 24px 16px auto 14px; }
+.story-transition { grid-area: return; margin: 0; font: 12px/14px 'Patrick Hand', cursive; }
+#game-screen .blob { grid-area: blob; justify-self: center; align-self: center; min-height: 44px; min-width: 44px; height: 100%; width: auto; max-height: 260px; max-width: 100%; aspect-ratio: 1; margin: 0; }
+#game-screen .blob canvas { width: 100%; height: 100%; object-fit: contain; }
+.hint { grid-area: hint; margin: 0; font: 12px/14px 'Patrick Hand', cursive; }
+#game-screen .stats { grid-area: stats; min-height: 0; gap: 6px; }
+#game-screen .stats .stat { min-height: 0; border-width: 7px; border-image-width: 10px; padding: 0; }
+#game-screen .stats .stat span { font: 11px/12px 'Patrick Hand', cursive; letter-spacing: 0; white-space: nowrap; }
+#game-screen .stats .stat strong { margin: 1px 0 0; font: 19px/20px 'Lilita One', sans-serif; }
+#game-screen .notice { display: none; }
+#game-screen #save-warning { position: absolute; bottom: 50px; left: 0; right: 0; background: #fff1cc; font-size: 12px; }
+#restart { grid-area: restart; min-height: 44px; height: 44px; margin: 0; font: 16px/1 'Lilita One', sans-serif; padding: 10px 8% 12px 24%; }
+#game-screen[data-run-state='dead'], #game-screen[data-run-state='won'] { grid-template-areas: 'nav' 'score' 'conversation' 'blob' 'restart' 'stats'; grid-template-rows: 44px clamp(76px, 11.5dvh, 102px) max-content minmax(44px, 1fr) 44px 48px; }
+#game-screen[data-run-state='dead'] .hint, #game-screen[data-run-state='won'] .hint { display: none; }
+#stats-screen { display: grid; grid-template-rows: 44px 24px minmax(0, 1fr) 28px; gap: 8px; }
+.subhead { margin: 0; min-height: 0; }
+.panel-title { font-size: 28px; line-height: 1; }
+.quiet-note { margin: 0; font: 14px/1.2 'Patrick Hand', cursive; }
+.stat-list { margin: 0; min-height: 0; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.stat-row { min-height: 0; padding: 6px 12px; font-size: 17px; }
+.stat-row strong { font: 24px/1 'Lilita One', sans-serif; }
+#ads-screen { display: grid; grid-template-rows: 44px minmax(0, .5fr) auto; gap: 8px; }
+#ads-screen > .menu-art { height: 100%; width: auto; max-height: 150px; max-width: 100%; }
+#ads-screen .card { margin: 0; padding: 14px; min-height: 0; display: grid; justify-items: center; gap: 7px; }
+#ads-screen .card .eyebrow { display: none; }
+#ads-screen .card h2 { margin: 0; font: 26px/1.05 'Lilita One', sans-serif; letter-spacing: 0; }
+#ads-screen .card p { margin: 0; font: 15px/1.2 'Patrick Hand', cursive; }
+#ads-screen .card .action { margin: 0; min-height: 40px; padding: 8px 16px; }
+#ads-screen #restore-purchases { min-height: 44px; }
+#ads-screen #purchase-message { font-size: 13px; }
+#audio-dialog {
+  position: fixed; top: calc(var(--ad-banner-height) + 8px); bottom: 8px; margin: auto;
+  width: min(94vw, 420px); max-height: calc(100dvh - var(--ad-banner-height) - 16px);
+  padding: 14px; border: 2px solid #795032; border-radius: 12px 20px 10px 15px;
+  color: var(--ink); background: #fff1d2; box-shadow: 4px 6px 0 #6a3e2940; overflow: hidden;
+}
+#audio-dialog::backdrop { background: #3e291866; }
+.audio-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.audio-heading h2 { margin: 0; font: 25px/1 'Lilita One', sans-serif; }
+#audio-close { min-width: 44px; height: 44px; padding: 0; }
+#audio-dialog .audio-panel { margin: 8px 0; padding: 8px 10px; }
+#audio-dialog .audio-panel summary { font: 15px/20px 'Patrick Hand', cursive; }
+#audio-dialog .audio-panel label { margin: 8px 0 0; font: 16px/18px 'Patrick Hand', cursive; }
+#audio-dialog .audio-panel input { height: 36px; }
+#audio-dialog .audio-panel p { font: 13px/16px 'Patrick Hand', cursive; }
+#sound-toggle { width: 100%; min-height: 44px; font-size: 16px; }
+@media (max-height: 720px) {
+  main { grid-template-rows: var(--ad-banner-height) 44px minmax(0, 1fr) 0; }
+  footer { display: none; }
+  #menu-screen { grid-template-areas: 'logo' 'record' 'hero' 'buttons'; grid-template-rows: minmax(60px, .9fr) 26px minmax(60px, 1.1fr) 144px; }
+  .menu-eyebrow, .menu-quote, .menu-bottom { display: none; }
+  .score-plaque .goal { display: none; }
+  #ads-screen { grid-template-rows: 44px minmax(0, 1fr); }
+  #ads-screen > .menu-art { display: none; }
+  #ads-screen .card { align-self: center; padding: 12px; gap: 6px; }
+  #ads-screen .card h2 { font-size: 23px; }
+}
+@media (max-height: 650px) {
+  #game-screen { grid-template-areas: 'nav' 'score' 'conversation' 'blob' 'stats'; grid-template-rows: 44px 76px max-content minmax(44px, 1fr) 48px; }
+  #game-screen .hint { display: none; }
+  #game-screen[data-run-state='dead'], #game-screen[data-run-state='won'] { grid-template-areas: 'nav' 'score' 'conversation' 'blob' 'restart' 'stats'; grid-template-rows: 44px 76px max-content minmax(44px, 1fr) 44px 48px; }
+  .game-nav > span { display: none; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --edge: 12px; }
+  main { max-width: 900px; padding-top: 4px; padding-bottom: 4px; gap: 3px; }
+  #menu-screen { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, .85fr) minmax(0, 1fr) 24px; grid-template-areas: 'logo buttons' 'hero buttons' 'record buttons'; gap: 4px 16px; }
+  .hero-note, .hero-star { display: none; }
+  #game-screen, #game-screen[data-run-state='dead'], #game-screen[data-run-state='won'] { grid-template-columns: minmax(0, 1.25fr) minmax(90px, .75fr); grid-template-rows: 44px minmax(0, 1fr) 44px; grid-template-areas: 'nav score' 'conversation blob' 'stats restart'; gap: 3px 10px; }
+  #game-screen .stats { grid-column: 1 / -1; }
+  #game-screen[data-run-state='dead'] .stats, #game-screen[data-run-state='won'] .stats { grid-column: 1; }
+  #game-screen .score-plaque { border-width: 6px; border-image-width: 11px; padding: 0 8px; }
+  .score-plaque .score { font-size: 22px; }
+  .score-plaque .target { font-size: 10px; line-height: 10px; }
+  .score-spark { display: none; }
+  #conversation { grid-template-rows: 22px 14px auto; gap: 1px; }
+  #conversation[data-state='aside'] { grid-template-rows: 22px 14px 24px auto; }
+  #conversation[data-state='resumed'] { grid-template-rows: 22px 14px auto 12px; }
+  .story-title { font-size: 12px; line-height: 14px; }
+  .story-doodle { display: none; }
+  #game-screen .speech { font-size: 14px; line-height: 1.15; border-width: 8px; border-image-width: 13px; padding: 3px 8px; min-height: 42px; }
+  .paused-story { padding: 0 5px; }
+  .paused-story span { font-size: 8px; line-height: 9px; }
+  .paused-story p { font-size: 11px; line-height: 12px; }
+  #game-screen .blob { max-height: 100%; }
+  #restart { font-size: 13px; }
+  #stats-screen { grid-template-rows: 44px minmax(0, 1fr); gap: 4px; }
+  #stats-screen > .quiet-note { display: none; }
+  .stat-list { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .stat-row { padding: 3px 10px; font-size: 15px; }
+  .stat-row strong { font-size: 20px; }
+  #ads-screen { grid-template-rows: 44px minmax(0, 1fr); gap: 4px; }
+  #ads-screen .card { align-self: stretch; padding: 6px 10px; gap: 2px 10px; grid-template-columns: minmax(0, 1fr) minmax(120px, .8fr); grid-template-rows: 30px minmax(24px, 1fr) 44px; }
+  #ads-screen .card h2 { grid-column: 1; grid-row: 1; font-size: 22px; }
+  #ads-screen .card p:not(.quiet-note):not(.eyebrow) { grid-column: 1; grid-row: 2; font-size: 12px; line-height: 12px; }
+  #ads-screen .card .action { grid-column: 2; grid-row: 1; min-height: 28px; padding: 4px 12px; font-size: 14px; }
+  #ads-screen .card .quiet-note:not(#purchase-message) { grid-column: 2; grid-row: 2; font-size: 12px; line-height: 12px; }
+  #ads-screen #restore-purchases { grid-column: 2; grid-row: 3; padding: 6px 10px; font-size: 13px; }
+  #ads-screen #purchase-message { grid-column: 1; grid-row: 3; font-size: 12px; line-height: 12px; align-self: center; }
+  #audio-dialog { padding: 8px 12px; }
+  .audio-heading h2 { font-size: 21px; }
+  #audio-dialog .audio-panel { margin: 4px 0; padding: 4px 8px; }
+  #audio-dialog .audio-panel summary { display: none; }
+  #audio-dialog .audio-panel label { margin-top: 2px; font-size: 14px; line-height: 15px; }
+  #audio-dialog .audio-panel input { height: 30px; }
+  #audio-dialog .audio-panel p { display: none; }
+}
+@media (orientation: landscape) and (max-height: 420px) {
+  #game-screen, #game-screen[data-run-state='dead'], #game-screen[data-run-state='won'] { grid-template-rows: 44px minmax(0, 1fr); grid-template-areas: 'nav score' 'conversation blob'; }
+  #game-screen .stats { display: none; }
+  #game-screen[data-run-state='dead'], #game-screen[data-run-state='won'] { grid-template-rows: 44px minmax(0, 1fr) 44px; grid-template-areas: 'nav score' 'conversation blob' 'conversation restart'; }
+}
+
+/* Keep the interruption card inside its column on short screens. */
+@media (orientation: landscape) and (max-height: 520px) {
+  #conversation[data-state='aside'] .speech { transform: none; animation: none; }
+}
