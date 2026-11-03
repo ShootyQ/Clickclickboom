@@ -3,22 +3,31 @@ package com.shootyq.clickclickboom;
 import android.annotation.SuppressLint;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
+import androidx.webkit.WebViewAssetLoader;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebResourceError;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Button;
+import android.view.Gravity;
+import java.io.ByteArrayInputStream;
+import java.util.Collections;
 
 /** Offline Android host. The bundled game owns gameplay and local saves. */
 public final class MainActivity extends ComponentActivity {
     private WebView game;
+    private FrameLayout root;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -28,7 +37,7 @@ public final class MainActivity extends ComponentActivity {
         getWindow().setNavigationBarColor(cream);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-        FrameLayout root = new FrameLayout(this);
+        root = new FrameLayout(this);
         root.setBackgroundColor(cream);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
             if (Build.VERSION.SDK_INT >= 30) {
@@ -42,6 +51,7 @@ public final class MainActivity extends ComponentActivity {
             return insets.consumeSystemWindowInsets();
         });
         game = new WebView(this);
+        game.setId(R.id.game_webview);
         game.setBackgroundColor(cream);
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
         WebSettings settings = game.getSettings();
@@ -52,9 +62,29 @@ public final class MainActivity extends ComponentActivity {
         settings.setBlockNetworkLoads(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSupportMultipleWindows(false);
+        WebViewAssetLoader assets = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
         game.setWebViewClient(new WebViewClient() {
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                WebResourceResponse local = assets.shouldInterceptRequest(request.getUrl());
+                if (local != null) return local;
+                return new WebResourceResponse("text/plain", "UTF-8", 403, "Blocked",
+                        Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 // No external navigation or remote game content in the offline test build.
+                return true;
+            }
+            @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame()) {
+                    android.util.Log.e("SplatStartup", "Main page failed, code=" + error.getErrorCode());
+                    showLoadError();
+                }
+            }
+            @Override public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                android.util.Log.e("SplatStartup", "Renderer exited, crash=" + detail.didCrash());
+                showLoadError();
                 return true;
             }
         });
@@ -62,31 +92,48 @@ public final class MainActivity extends ComponentActivity {
         root.addView(game, new FrameLayout.LayoutParams(-1, -1));
         setContentView(root);
         root.requestApplyInsets();
-        try (java.io.InputStream stream = getAssets().open("index.html")) {
-            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
-            byte[] chunk = new byte[8192];
-            int count;
-            while ((count = stream.read(chunk)) != -1) buffer.write(chunk, 0, count);
-            String html = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
-            // A stable HTTPS origin gives localStorage a consistent identity without file access.
-            game.loadDataWithBaseURL("https://appassets.androidplatform.net/", html,
-                    "text/html", "UTF-8", null);
-        } catch (IOException error) {
-            throw new IllegalStateException("Bundled game is missing", error);
-        }
+        // Stream local files instead of copying a huge base64 HTML string through
+        // the Java heap and WebView IPC. The origin stays unchanged for saves.
+        game.loadUrl("https://appassets.androidplatform.net/assets/index.html");
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() { handleBack(); }
         });
     }
 
     private void handleBack() {
+        if (game == null) { finish(); return; }
         game.evaluateJavascript("window.handleAndroidBack ? window.handleAndroidBack() : false",
                 handled -> { if (!"true".equals(handled)) finish(); });
     }
 
+    private void showLoadError() {
+        if (game != null) {
+            root.removeView(game);
+            game.destroy();
+            game = null;
+        }
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER);
+        panel.setPadding(32, 32, 32, 32);
+        TextView message = new TextView(this);
+        message.setText(R.string.game_load_failed);
+        message.setGravity(Gravity.CENTER);
+        message.setTextSize(18);
+        Button retry = new Button(this);
+        retry.setText(R.string.retry_game);
+        retry.setOnClickListener(view -> recreate());
+        panel.addView(message);
+        panel.addView(retry);
+        root.removeAllViews();
+        root.addView(panel, new FrameLayout.LayoutParams(-1, -1));
+    }
+
     @Override protected void onPause() {
-        game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(true)", null);
-        game.onPause();
+        if (game != null) {
+            game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(true)", null);
+            game.onPause();
+        }
         super.onPause();
     }
 
@@ -99,7 +146,7 @@ public final class MainActivity extends ComponentActivity {
     }
 
     @Override protected void onDestroy() {
-        game.destroy();
+        if (game != null) game.destroy();
         super.onDestroy();
     }
 }

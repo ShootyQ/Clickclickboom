@@ -2,6 +2,7 @@
 from pathlib import Path
 import base64
 import json
+import shutil
 
 root = Path(__file__).resolve().parent
 shell = (root / 'src/shell.html').read_text()
@@ -35,14 +36,36 @@ for path in sorted((root / 'stories').glob('*.md')):
 assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
-(root / 'index.html').write_text(shell.replace('/* GAME_CORE */', core)
-    .replace('/* UI_STYLE */', style).replace('/* LOGO_ART */', 'data:image/png;base64,' + logo)
+def render(page_style, page_logo, page_sounds, page_music, page_sprite):
+    return (shell.replace('/* GAME_CORE */', core)
+    .replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
-    .replace('/* AUDIO_CORE */', audio_core).replace('/* AUDIO_FILES */', json.dumps(sounds))
-    .replace('/* MUSIC_FILES */', json.dumps(music))
+    .replace('/* AUDIO_CORE */', audio_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
+    .replace('/* MUSIC_FILES */', json.dumps(page_music))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
-    .replace('/* SPRITE_DATA */', 'data:image/png;base64,' + sprite))
+    .replace('/* SPRITE_DATA */', page_sprite))
+
+# Preserve the downloadable standalone page, but do not load it into Android.
+(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite))
+
+# A small entry document plus raw files avoids duplicating megabytes of base64
+# in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
+dist = root / 'dist'
+dist.mkdir(exist_ok=True)
+streaming_style = (root / 'src/style.css').read_text().replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png')
+streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
+streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3')]]
+(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png'))
+asset_paths = ['blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
+               'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
+               'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3']
+for relative in asset_paths:
+    destination = dist / 'assets' / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(root / 'assets' / relative, destination)
+assert (dist / 'index.html').stat().st_size < 1024 * 1024, 'Startup page must remain below 1 MiB'
+print(f'Streaming entry page: {(dist / "index.html").stat().st_size:,} bytes; media and art are separate files.')
 print('Built index.html with embedded game logic and PNG sprites.')
 print(f'Embedded {len(stories)} stories, {sum(len(story["beats"]) for story in stories)} dialogue beats.')
 print(f'Embedded {len(milestones)} milestones and {sum(map(len, milestones.values()))} reactions.')

@@ -28,11 +28,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Test and bundle game
         run: |
+          python3 build.py
           node tests/game.test.js
           node tests/story.test.js
           node tests/milestones.test.js
           python3 -m unittest discover -s tests -p 'test_*.py'
-          python3 build.py
       - name: Install Android platform
         run: |
           sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
@@ -56,7 +56,7 @@ jobs:
           SPLAT_UPLOAD_STORE_PASSWORD: ${{ secrets.SPLAT_UPLOAD_STORE_PASSWORD }}
           SPLAT_UPLOAD_KEY_ALIAS: ${{ secrets.SPLAT_UPLOAD_KEY_ALIAS }}
           SPLAT_UPLOAD_KEY_PASSWORD: ${{ secrets.SPLAT_UPLOAD_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon --max-workers=2 assembleDebug bundleRelease lintDebug lintRelease
+        run: ./gradlew --no-daemon --max-workers=2 assembleDebug assembleDebugAndroidTest bundleRelease lintDebug lintRelease
       - uses: actions/upload-artifact@v4
         with:
           name: squish-squish-splat-android-debug
@@ -69,6 +69,62 @@ jobs:
           name: squish-squish-splat-play-internal
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
+      - name: Upload Android startup test
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-startup-test
+          path: android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          if-no-files-found: error
       - name: Remove temporary CI upload key
         if: always()
         run: rm -f "$RUNNER_TEMP/splat-upload.p12"
+
+  startup:
+    name: Launch on Android emulator
+    needs: android
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: squish-squish-splat-android-debug
+          path: launch-test
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-startup-test
+          path: launch-test
+      - name: Enable emulator acceleration
+        run: sudo chmod 666 /dev/kvm
+      - name: Locate Android tools
+        run: |
+          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          sdk_manager=$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)
+          test -n "$sdk_manager"
+          echo "$(dirname "$sdk_manager")" >> "$GITHUB_PATH"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader -memory 2048 -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb install -r launch-test/app-debug.apk
+            adb install -r launch-test/app-debug-androidTest.apk
+            adb shell am instrument -w -r com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > launch-test/instrumentation.txt
+            cat launch-test/instrumentation.txt
+            adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > launch-test/logcat.txt
+            grep -q 'OK (1 test)' launch-test/instrumentation.txt
+      - name: Retain startup result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-startup-result
+          path: launch-test/*.txt

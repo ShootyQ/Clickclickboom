@@ -33,11 +33,11 @@ jobs:
           node tests/game.test.js
           node tests/story.test.js
           node tests/milestones.test.js
-      - name: Build standalone game
+      - name: Build streaming game
         run: |
           python3 build.py
           mkdir -p _site
-          cp index.html _site/index.html
+          cp -R dist/. _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

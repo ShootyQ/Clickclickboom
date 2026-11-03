@@ -41,8 +41,15 @@
           });
         }
         this.ready = Promise.all(Object.entries(files).map(async ([name, encoded]) => {
-          const bytes = Uint8Array.from(atob(encoded), character => character.charCodeAt(0));
-          this.buffers[name] = await this.context.decodeAudioData(bytes.buffer);
+          let data;
+          if (encoded.startsWith('assets/')) {
+            const response = await fetch(encoded);
+            if (!response.ok) throw new Error('Sound asset could not load');
+            data = await response.arrayBuffer();
+          } else {
+            data = Uint8Array.from(atob(encoded), character => character.charCodeAt(0)).buffer;
+          }
+          this.buffers[name] = await this.context.decodeAudioData(data);
         })).catch(() => { this.stop(); this.failed = true; });
       } catch (_) { this.context = null; }
     }

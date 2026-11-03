@@ -4,6 +4,10 @@ plugins {
 
 dependencies {
     implementation 'androidx.activity:activity:1.10.1'
+    implementation 'androidx.webkit:webkit:1.12.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:core:1.6.1'
 }
 
 def uploadStoreFile = providers.environmentVariable('SPLAT_UPLOAD_STORE_FILE').orNull
@@ -24,8 +28,10 @@ android {
         applicationId 'com.squishsquishsplat.myapp'
         minSdk 26
         targetSdk 36
-        versionCode 9
-        versionName '0.7.2'
+        versionCode 10
+        versionName '0.7.3'
+        testApplicationId 'com.squishsquishsplat.launchtests'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -60,11 +66,11 @@ androidComponents {
     }
 }
 
-def bundleGame = tasks.register('bundleGame', Copy) {
-    from rootProject.file('../index.html')
+def bundleGame = tasks.register('bundleGame', Sync) {
+    from rootProject.file('../dist')
     into layout.buildDirectory.dir('generated/gameAssets')
     doFirst {
-        if (!rootProject.file('../index.html').exists()) {
+        if (!rootProject.file('../dist/index.html').exists()) {
             throw new GradleException('Run python3 build.py from the repository root first.')
         }
     }

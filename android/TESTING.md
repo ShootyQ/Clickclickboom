@@ -31,7 +31,9 @@ cd android
 
 APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-The Gradle asset task packages the generated `index.html`; rebuild the web bundle after changing stories, dialogue, or JavaScript. The app does not download content from the website. Existing browser saves do not transfer to the Android app.
+The Gradle asset task packages **`dist/`**, including its small entry page and separate images/audio; rebuild it with `python3 build.py` after changing stories, dialogue, or JavaScript. Android loads `https://appassets.androidplatform.net/assets/index.html` through a local asset loader, preserving the existing localStorage origin. It does not copy the legacy standalone base64 HTML into Java memory or download content from the website. Existing browser saves do not transfer to the Android app.
+
+CI builds the Android instrumentation APK and launches an API 36 emulator. The startup test must find the rendered game title, full logo, and all three decoded SFX buffers. To run it with a connected emulator or phone locally: `./gradlew connectedDebugAndroidTest` from `android/`.
 
 ## Phone checks
 

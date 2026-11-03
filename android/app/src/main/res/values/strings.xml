@@ -1,0 +1,4 @@
+<resources>
+    <string name="game_load_failed">Game could not load.\nYour saved progress is still on this device.</string>
+    <string name="retry_game">Try again</string>
+</resources>

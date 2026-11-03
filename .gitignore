@@ -1,4 +1,5 @@
 _site/
+dist/
 __pycache__/
 android/.gradle/
 android/**/build/
