@@ -1,4 +1,4 @@
-name: Build Android test APK
+name: Build Android APK and Play AAB
 
 on:
   push:
@@ -31,6 +31,7 @@ jobs:
           node tests/game.test.js
           node tests/story.test.js
           node tests/milestones.test.js
+          python3 -m unittest discover -s tests -p 'test_*.py'
           python3 build.py
       - name: Install Android platform
         run: |
@@ -41,11 +42,33 @@ jobs:
             test -n "$sdk_manager"
             "$sdk_manager" --sdk_root="$sdk_root" 'platforms;android-36' 'build-tools;36.0.0'
           fi
+      - name: Prepare optional Play upload signing
+        id: signing
+        env:
+          SPLAT_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SPLAT_UPLOAD_KEYSTORE_BASE64 }}
+          SPLAT_UPLOAD_STORE_PASSWORD: ${{ secrets.SPLAT_UPLOAD_STORE_PASSWORD }}
+          SPLAT_UPLOAD_KEY_ALIAS: ${{ secrets.SPLAT_UPLOAD_KEY_ALIAS }}
+          SPLAT_UPLOAD_KEY_PASSWORD: ${{ secrets.SPLAT_UPLOAD_KEY_PASSWORD }}
+        run: python3 android/prepare_ci_signing.py
       - name: Build and lint Android app
         working-directory: android
-        run: ./gradlew --no-daemon --max-workers=2 assembleDebug lintDebug
+        env:
+          SPLAT_UPLOAD_STORE_PASSWORD: ${{ secrets.SPLAT_UPLOAD_STORE_PASSWORD }}
+          SPLAT_UPLOAD_KEY_ALIAS: ${{ secrets.SPLAT_UPLOAD_KEY_ALIAS }}
+          SPLAT_UPLOAD_KEY_PASSWORD: ${{ secrets.SPLAT_UPLOAD_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon --max-workers=2 assembleDebug bundleRelease lintDebug lintRelease
       - uses: actions/upload-artifact@v4
         with:
           name: squish-squish-splat-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Upload signed Play internal-testing bundle
+        if: steps.signing.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: squish-squish-splat-play-internal
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+      - name: Remove temporary CI upload key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/splat-upload.p12"

@@ -1,10 +1,10 @@
 # Android testing
 
-This is an **offline debug build**, not a Google Play release. It wraps the same bundled game used by the website in a native Android Activity. Minimum Android version: **8.0 (API 26)**. Target: **Android 16 (API 36)**.
+The direct-install APK is an **offline debug build**. The signed Play AAB is a release build for internal testing (see below). Both wrap the same bundled game used by the website in a native Android Activity. Minimum Android version: **8.0 (API 26)**. Target: **Android 16 (API 36)**.
 
 ## Install on a phone
 
-Download the `squish-squish-splat-android-debug` artifact from the repository's **Actions → Build Android test APK** workflow, unzip it, and open `app-debug.apk` on your Android device. Allow installation from your browser or file manager when Android asks. The test app is named **Squish Squish Splat**, with package ID `com.shootyq.clickclickboom.debug`.
+Download the `squish-squish-splat-android-debug` artifact from the repository's **Actions → Build Android APK and Play AAB** workflow, unzip it, and open `app-debug.apk` on your Android device. Allow installation from your browser or file manager when Android asks. The test app is named **Squish Squish Splat**, with package ID `com.shootyq.clickclickboom.debug`.
 
 Alternatively, enable Developer options and USB debugging, connect the device, then run:
 
@@ -44,6 +44,25 @@ The Gradle asset task packages the generated `index.html`; rebuild the web bundl
 - Continue until an explosion: puddles remain, score resets, and restarting begins a new story.
 - Open **Remove Ads**: the test build clearly states purchases are unavailable, shows no ads, and never launches a payment prompt.
 
-There is no billing SDK, AdMob integration, online leaderboard, or production signing in this build. Remove Ads is a navigation and information screen; purchase and restore entitlement behavior requires the later Google Play Billing integration. Statistics and scores are local, not server-validated. Debug builds allow WebView inspection through Chrome's `chrome://inspect` with USB debugging enabled.
+There is no billing SDK, AdMob integration, or online leaderboard in this version. Remove Ads is a navigation and information screen; purchase and restore entitlement behavior requires the later Google Play Billing integration. Statistics and scores are local, not server-validated. Debug APKs use debug signing and allow WebView inspection through Chrome's `chrome://inspect` with USB debugging enabled; the Play AAB uses the dedicated upload key and disables that inspection.
 
-Before Play testing, configure the final app ID, signing, store listing, privacy/data-safety declarations, and (when implemented) test ad units and billing products. Installing this APK directly does not publish to Google Play.
+For Play testing, use the signed AAB below and complete the Console setup items, store information, and privacy/data-safety declarations requested for the account. Ad units and billing products will be needed when those features are implemented. Installing an APK directly does not publish to Google Play.
+
+## Google Play internal testing: signed AAB
+
+Use a **signed release `.aab`** for Play Console's Internal testing track. The debug APK is for direct installation and is a separate app. The Play application ID is **`com.shootyq.squishsquishsplat`**; the original debug ID is retained for existing sideloaded saves. Release builds disable WebView debugging. The Play and debug apps have separate local progress.
+
+A dedicated upload key has been created for this new app and kept outside the repository. Retain its private backup; it contains the encrypted keystore and its passwords. Never commit the backup, upload it as a public Actions artifact, or share its contents in chat. Google Play App Signing manages the app-signing key; our key signs uploads. The first signed AAB registers the upload identity when you enroll the app.
+
+To build a signed bundle locally, securely supply these environment variables and run `./gradlew bundleRelease lintRelease` in `android/`:
+
+- `SPLAT_UPLOAD_STORE_FILE`: path to `upload-keystore.p12`.
+- `SPLAT_UPLOAD_STORE_PASSWORD`: keystore password.
+- `SPLAT_UPLOAD_KEY_ALIAS`: upload alias.
+- `SPLAT_UPLOAD_KEY_PASSWORD`: key password.
+
+Bundle output: `android/app/build/outputs/bundle/release/app-release.aab`. With no signing variables, Gradle can compile an unsigned bundle for validation; **that output cannot be uploaded to Play**. Partial signing configuration fails explicitly.
+
+For repeatable signed bundles in GitHub Actions, enter the four entries from the private backup's `github-actions-secrets.json` into **repository Settings → Secrets and variables → Actions**. These are `SPLAT_UPLOAD_KEYSTORE_BASE64`, `SPLAT_UPLOAD_STORE_PASSWORD`, `SPLAT_UPLOAD_KEY_ALIAS`, and `SPLAT_UPLOAD_KEY_PASSWORD`. Values belong in secret fields, never in workflow source. CI publishes `squish-squish-splat-play-internal` only when signing is configured, and deletes its temporary keystore afterward. Without secrets it publishes only the debug APK, while still compiling/linting the release variant.
+
+In Play Console, create the new app, open **Testing → Internal testing**, create a release, enroll in Play App Signing, and upload the signed AAB. Add testers and provide them the opt-in link after you roll out the internal release. Complete any setup items Play Console requires for this account. This work prepares files; it does not create a Console app or upload/roll out a release. Increase `versionCode` for each subsequent upload.

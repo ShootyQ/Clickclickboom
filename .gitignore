@@ -5,3 +5,10 @@ android/**/build/
 android/local.properties
 *.apk
 artifacts/
+*.aab
+*.jks
+*.keystore
+*.p12
+local-signing.json
+github-actions-secrets.json
+PRIVATE-upload-key-backup.zip
