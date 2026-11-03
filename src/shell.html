@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="48x48" href="/* FAVICON_ART */">
 <meta name="theme-color" content="#fff4df"><title>Squish Squish Splat</title>
 <!-- /* FONT_LICENSES */ -->
 <style>/* UI_STYLE */</style>
@@ -44,7 +45,7 @@
 <p id="save-warning" hidden>Saving is unavailable here. Progress lasts only while this page stays open.</p>
 <p class="notice">Finish odds: 1 in 5,000,000 per run.<br>Independent explosion risk: about 1 in 3,242 per tap.<br>Explosions reset your run. Your personal best stays.</p>
 </section><footer>SMALL BLOB. BIG AMBITIONS.</footer></main>
-<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><h2 id="audio-title">Music &amp; squishes</h2><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details><div class="audio-actions"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button><button class="back" id="privacy-options" hidden>Ad privacy</button></div></dialog>
+<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><div><h2 id="audio-title">Music &amp; squishes</h2><a class="privacy-policy-link" id="privacy-policy-link" href="https://shootyq.github.io/Clickclickboom/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details><div class="audio-actions"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button><button class="back" id="privacy-options" hidden>Ad privacy</button></div></dialog>
 <script>/* GAME_CORE */</script>
 <script>/* STORY_CORE */</script>
 <script>/* MILESTONE_CORE */</script>
@@ -91,6 +92,7 @@ window.SplatNative={applyState:status=>store.applyState(status)};
 $('buy-remove-ads').onclick=()=>store.request('buy');
 $('restore-purchases').onclick=()=>store.request('restore');
 $('privacy-options').onclick=()=>store.request('privacy');
+$('privacy-policy-link').onclick=event=>{if(window.SplatStore&&typeof window.SplatStore.postMessage==='function'){event.preventDefault();store.request('policy')}};
 $('purchase-message').textContent=store.state.message;
 store.request('ready');
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.handleAndroidBack()}});

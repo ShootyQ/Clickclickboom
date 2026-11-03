@@ -213,3 +213,6 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   #ads-screen #purchase-message { line-height: 20px; }
   #ads-screen #purchase-message { grid-column: 1 / -1; grid-row: 4; }
 }
+
+.privacy-policy-link { display: inline-block; color: var(--ink); font: 13px/16px 'Patrick Hand', cursive; text-underline-offset: 2px; }
+.privacy-policy-link:focus-visible { outline: 2px solid #8f281c; outline-offset: 3px; }

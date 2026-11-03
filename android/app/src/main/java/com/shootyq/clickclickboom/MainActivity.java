@@ -1,6 +1,10 @@
 package com.shootyq.clickclickboom;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.ActivityNotFoundException;
+import android.net.Uri;
+import android.widget.Toast;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.webkit.WebViewAssetLoader;
@@ -31,6 +35,7 @@ import org.json.JSONObject;
 
 /** Local game host. Native consent, ads and billing are isolated from the game WebView. */
 public final class MainActivity extends ComponentActivity {
+    private static final String PRIVACY_POLICY_URL = "https://shootyq.github.io/Clickclickboom/privacy.html";
     private WebView game;
     private FrameLayout root;
     private StoreController store;
@@ -92,7 +97,8 @@ public final class MainActivity extends ComponentActivity {
                         Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                // No external navigation or remote game content in the offline test build.
+                // Only the explicit public policy link opens externally; game content stays local.
+                if (request.isForMainFrame() && PRIVACY_POLICY_URL.equals(request.getUrl().toString())) openPrivacyPolicy();
                 return true;
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
@@ -124,6 +130,7 @@ public final class MainActivity extends ComponentActivity {
                             if ("buy".equals(action)) store.buy();
                             else if ("restore".equals(action)) store.restore();
                             else if ("privacy".equals(action)) ads.showPrivacyOptions();
+                            else if ("policy".equals(action)) openPrivacyPolicy();
                             else if ("ready".equals(action)) publishStoreState();
                         });
                     });
@@ -137,6 +144,13 @@ public final class MainActivity extends ComponentActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() { handleBack(); }
         });
+    }
+
+    private void openPrivacyPolicy() {
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))); }
+        catch (ActivityNotFoundException exception) {
+            Toast.makeText(this, "Open " + PRIVACY_POLICY_URL + " in a browser.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void publishStoreState() {

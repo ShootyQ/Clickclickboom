@@ -17,7 +17,7 @@
         changed({...state});
       },
       request(action) {
-        if (!['ready', 'buy', 'restore', 'privacy'].includes(action)) return;
+        if (!['ready', 'buy', 'restore', 'privacy', 'policy'].includes(action)) return;
         if (!bridge || typeof bridge.postMessage !== 'function') {
           state.message = 'Purchases are available in the Android app through Google Play.';
           changed({...state});

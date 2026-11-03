@@ -37,3 +37,9 @@ After `python3 build.py`, run `node tests/mobile-layout.cjs` with Playwright ins
 Android now includes a native adaptive banner, Google UMP consent/privacy options, and a one-time `remove_ads` Play Billing flow with restoration. Unconfigured builds use Google test ad IDs and disable checkout; the browser preview has no purchasing. See [Android monetization setup](android/MONETIZATION.md) for AdMob IDs, Play product/public-key configuration, license testing, and launch checks. Gameplay and statistics remain local.
 
 Run `node tests/store.test.js` for the purchase UI adapter and `node tests/native-store-ui.cjs` with Playwright for the native store states, privacy controls, and banner-reduced viewport checks. Receipt signature tests run with `./gradlew testDebugUnitTest` in `android/`.
+
+### Privacy policy and app icon
+
+The public policy is [privacy.html](privacy.html), published at https://shootyq.github.io/Clickclickboom/privacy.html and linked from the game's audio settings. It names Shooty Queness and savemhq@gmail.com, and covers local storage, Google ads/consent, Play purchases, support, and GitHub Pages hosting. `build.py` copies it and its local assets into the web/Android distribution.
+
+The approved icon source is `assets/ui/app-icon-original.png`; `assets/ui/app-icon-512.png` is the opaque 512×512 PNG for the Play listing. Android 8+ uses a padded adaptive icon to accommodate launcher masks. The browser uses `assets/ui/favicon-48.png`.

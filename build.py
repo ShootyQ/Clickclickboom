@@ -40,10 +40,11 @@ for path in sorted((root / 'stories').glob('*.md')):
     stories.append({'id': path.stem, 'title': paragraphs[0].removeprefix('# '), 'beats': beats})
 assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
+favicon = base64.b64encode((root / 'assets/ui/favicon-48.png').read_bytes()).decode()
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
-def render(page_style, page_logo, page_sounds, page_music, page_sprite):
+def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon):
     return (shell.replace('/* GAME_CORE */', core).replace('/* FONT_LICENSES */', font_licenses)
-    .replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
+    .replace('/* FAVICON_ART */', page_icon).replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
     .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
@@ -52,7 +53,7 @@ def render(page_style, page_logo, page_sounds, page_music, page_sprite):
     .replace('/* SPRITE_DATA */', page_sprite))
 
 # Preserve the downloadable standalone page, but do not load it into Android.
-(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite))
+(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite, 'data:image/png;base64,' + favicon))
 
 # A small entry document plus raw files avoids duplicating megabytes of base64
 # in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
@@ -61,8 +62,9 @@ dist.mkdir(exist_ok=True)
 streaming_style = base_style.replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png').replace('/* HAND_FONT */', 'assets/fonts/PatrickHand-Regular.ttf').replace('/* TITLE_FONT */', 'assets/fonts/LilitaOne-Regular.ttf')
 streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3')]]
-(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png'))
-asset_paths = ['blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
+(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png'))
+shutil.copyfile(root / 'privacy.html', dist / 'privacy.html')
+asset_paths = ['ui/favicon-48.png', 'ui/app-icon-512.png', 'blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
                'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
                'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3',
                'fonts/PatrickHand-Regular.ttf', 'fonts/LilitaOne-Regular.ttf',

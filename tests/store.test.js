@@ -31,8 +31,8 @@ test('restore and consent actions go to native and malformed messages stay text'
   const calls = [];
   let displayed;
   const store = createStore({postMessage: action => calls.push(action)}, state => { displayed = state; });
-  store.request('restore'); store.request('privacy'); store.request('grantAdsRemoved');
-  assert.deepEqual(calls, ['restore', 'privacy']);
+  store.request('restore'); store.request('privacy'); store.request('policy'); store.request('grantAdsRemoved');
+  assert.deepEqual(calls, ['restore', 'privacy', 'policy']);
   store.applyState({native: true, adsRemoved: 'true', canBuy: 1, price: {}, message: '<script>no</script>', privacyRequired: true});
   assert.equal(displayed.adsRemoved, false);
   assert.equal(displayed.canBuy, false);

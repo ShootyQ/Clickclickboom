@@ -43,11 +43,12 @@ const server = http.createServer(async (request, response) => {
       assert.equal(await page.locator('#ads-button').textContent(), 'Ads removed ✓');
       await page.locator('#audio-open').click();
       await page.locator('#privacy-options').click();
-      for (const selector of ['#privacy-options', '#sound-toggle', '#audio-close', '#music-volume', '#sfx-volume']) {
+      await page.locator('#privacy-policy-link').click();
+      for (const selector of ['#privacy-options', '#sound-toggle', '#audio-close', '#music-volume', '#sfx-volume', '#privacy-policy-link']) {
         const box = await page.locator(selector).boundingBox();
         assert(box && box.y >= 0 && box.y + box.height <= height + 1, `${width}x${height}: ${selector} outside viewport`);
       }
-      assert.deepEqual(await page.evaluate(() => storeCalls), ['ready', 'buy', 'restore', 'privacy']);
+      assert.deepEqual(await page.evaluate(() => storeCalls), ['ready', 'buy', 'restore', 'privacy', 'policy']);
       await page.evaluate(() => handleAndroidBack());
       for (const screen of ['menu','ads','stats','game']) {
         await page.evaluate(name => navigate(name), screen);
