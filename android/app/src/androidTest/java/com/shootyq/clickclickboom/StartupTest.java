@@ -28,16 +28,18 @@ public class StartupTest {
                     reference.get().evaluateJavascript(
                         "document.title+'|'+location.origin+'|'+"
                         + "(document.querySelector('.menu-title img')?.naturalWidth||0)+'|'+"
+                        + "(document.documentElement.classList.contains('native-host')?'STORE':'WAIT')+'|'+"
                         + "(typeof ready!=='undefined'&&ready?'READY':'WAIT')+'|'+"
                         + "(typeof sound!=='undefined'?Object.keys(sound.buffers).length:0)", result::complete));
                 String raw = result.get(5, TimeUnit.SECONDS);
                 if (!"null".equals(raw)) snapshot = new JSONArray("[" + raw + "]").getString(0);
-                if (snapshot.endsWith("|READY|3") && snapshot.contains("|1536|")) break;
+                if (snapshot.endsWith("|READY|3") && snapshot.contains("|1536|STORE|")) break;
                 Thread.sleep(250);
             }
             assertTrue("Game did not finish loading: " + snapshot, snapshot.endsWith("|READY|3"));
             assertTrue(snapshot.contains("Squish Squish Splat"));
             assertTrue("Artwork did not load: " + snapshot, snapshot.contains("|1536|"));
+            assertTrue("Native store bridge did not load: " + snapshot, snapshot.contains("|STORE|"));
             assertTrue("Save origin changed: " + snapshot, snapshot.contains("https://appassets.androidplatform.net"));
         }
     }

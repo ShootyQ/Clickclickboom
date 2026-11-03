@@ -1,6 +1,6 @@
 # Squish Squish Splat
 
-The home menu has Play/Continue, device statistics, and a Remove Ads information screen. Purchases and ads are not active in this test version. Back/Escape returns to the menu without resetting a run.
+The home menu has Play/Continue, device statistics, and a Remove Ads screen. Android includes native banner ads, consent, and Play Billing; unconfigured builds use test ad IDs and disable checkout. Back/Escape returns to the menu without resetting a run.
 
 The UI uses custom illustrated logo/button assets from `assets/ui/` and paper-and-ink styling in `src/style.css`. Story dialogue displays its title and a Story time label. Milestone asides show a yellow Quick interruption card over the paused story line; the next eligible tap replays that line with a green Back to the story cue. Death and victory have distinct states, and a new run clears the interruption display. Reduced-motion preferences disable decorative transitions and idle sprite loops.
 
@@ -8,11 +8,11 @@ The supplied WAV files in `assets/audio/` are embedded in both the standalone we
 
 Music is bundled offline from `assets/music/`. Every launch starts the playlist with **Slimey Breeze**, followed by **Slimey Breezy Day**, then repeats in that order. Music starts after a user gesture, continues across menus and run resets, and pauses in the background. **Music & sound effects** opens independently saved 0–100% sliders (defaults: music 35%, SFX 65%). Zero pauses/mutes that channel; the existing Sound toggle mutes both without changing the saved slider levels. Music uses a media element through its own Web Audio gain node, so long tracks are not decoded into full-length PCM buffers at startup. Android lifecycle callbacks also pause/resume music.
 
-For an installable offline Android test app and a Play internal-testing bundle, see [Android testing](android/TESTING.md). GitHub Actions builds a debug APK on pushes to `main` and publishes a signed Play AAB when upload-signing secrets are configured. Android compilation and lint run independently of the Pages deployment.
+For an installable Android test app with offline gameplay and a Play internal-testing bundle, see [Android testing](android/TESTING.md). GitHub Actions builds a debug APK on pushes to `main` and publishes a signed Play AAB when upload-signing secrets are configured. Android compilation and lint run independently of the Pages deployment.
 
 Playable browser prototype of the Android game concept. Open `index.html` directly; it embeds all scripts and sprites. Tap the red blob to build a surviving run. The goal is **50,000 surviving clicks**, with a **1-in-5,000,000 probability of finishing a fresh run**. Each tap has the same independent explosion probability, calculated as `-expm1(-log(5000000) / 50000)` (about 1 in 3,242 taps). This is a single hardcore mode. An exploding click counts toward lifetime taps but not your surviving score. Explosions reset the run, preserve your personal best, and leave puddles until you choose to restart. Fifty thousand surviving clicks wins.
 
-Progress is saved in browser local storage when available. Storage belongs to the current browser and file origin; it is not an account or cloud save. Global rankings and Android packaging are not implemented yet. Scores are local and untrusted.
+Progress is saved in browser local storage when available. Storage belongs to the current browser and file origin; it is not an account or cloud save. There are no global rankings or accounts. Scores are local.
 
 Build after edits with `python3 build.py`. Run core gameplay checks with `node --test tests/game.test.js`. The editable UI source is `src/shell.html`; the independently testable rules are in `src/game.js`.
 
@@ -28,6 +28,12 @@ The display name is **Squish Squish Splat**. The original debug Android package 
 
 ### Mobile layout
 
-Screens fit the viewport with safe-area padding and a reserved 50 px top banner. `window.setAdBannerHeight(height)` adjusts the reservation for a future adaptive banner (0–120 px); no advertising SDK is connected yet. Audio settings open from the music-note button without shifting the game. Local Patrick Hand and Lilita One fonts and their OFL licenses are bundled in `assets/fonts/`.
+Screens fit the viewport with safe-area padding and a reserved 50 px top banner. `window.setAdBannerHeight(height)` adjusts the browser reservation (0–120 px). Android allocates its native adaptive banner above the WebView and sets the HTML reservation to zero. Audio settings open from the music-note button without shifting the game. Local Patrick Hand and Lilita One fonts and their OFL licenses are bundled in `assets/fonts/`.
 
 After `python3 build.py`, run `node tests/mobile-layout.cjs` with Playwright installed (or set `PLAYWRIGHT_MODULE` to its module path). Set `CHROMIUM_PATH` if needed. This checks all screens, long story text, interruptions, restart controls, and audio controls across seven portrait/landscape sizes with 50 px and 90 px banner reservations.
+
+### Ads and purchases
+
+Android now includes a native adaptive banner, Google UMP consent/privacy options, and a one-time `remove_ads` Play Billing flow with restoration. Unconfigured builds use Google test ad IDs and disable checkout; the browser preview has no purchasing. See [Android monetization setup](android/MONETIZATION.md) for AdMob IDs, Play product/public-key configuration, license testing, and launch checks. Gameplay and statistics remain local.
+
+Run `node tests/store.test.js` for the purchase UI adapter and `node tests/native-store-ui.cjs` with Playwright for the native store states, privacy controls, and banner-reduced viewport checks. Receipt signature tests run with `./gradlew testDebugUnitTest` in `android/`.

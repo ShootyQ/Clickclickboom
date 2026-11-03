@@ -692,6 +692,22 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 @media (orientation: landscape) and (max-height: 520px) {
   #conversation[data-state='aside'] .speech { transform: none; animation: none; }
 }
+
+/* The Android host allocates the native banner above the WebView. */
+.native-host .ad-slot { display: none; }
+.audio-actions { display: flex; gap: 8px; }
+.audio-actions #sound-toggle { flex: 1; width: auto; }
+#privacy-options { min-height: 44px; padding: 6px 10px; font-size: 14px; }
+#ads-screen .card #buy-remove-ads { min-height: 44px; }
+#ads-screen .card p { line-height: 1.5; }
+@media (orientation: landscape) and (max-height: 520px) {
+  #ads-screen .card { grid-template-rows: 44px minmax(24px, 1fr) 44px max-content; }
+  #ads-screen .card #buy-remove-ads { font-size: 13px; padding: 4px 8px; }
+  #ads-screen .card p:not(.quiet-note):not(.eyebrow),
+  #ads-screen .card .quiet-note:not(#purchase-message),
+  #ads-screen #purchase-message { line-height: 20px; }
+  #ads-screen #purchase-message { grid-column: 1 / -1; grid-row: 4; }
+}
 </style>
 <main>
 <div class="ad-slot" id="ad-slot" role="complementary" aria-label="Advertisement"><span>Advertisement</span></div>
@@ -709,12 +725,12 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 <div class="subhead"><h1 class="panel-title">Your stats.</h1><button class="back" data-home>← Menu</button></div>
 <p class="quiet-note">A record of some very determined poking.</p>
 <div class="stat-list"><div class="stat-row"><span>Personal best</span><strong id="stats-best">0</strong></div><div class="stat-row"><span>Current run</span><strong id="stats-run">0</strong></div><div class="stat-row"><span>Lifetime taps</span><strong id="stats-lifetime">0</strong></div><div class="stat-row"><span>Explosions</span><strong id="stats-deaths">0</strong></div><div class="stat-row"><span>Stories in the collection</span><strong id="stats-stories">3</strong></div></div>
-<p class="quiet-note">Saved on this device. Global rankings aren't available yet.</p>
+<p class="quiet-note">Saved on this device. No accounts. Just squishes.</p>
 </section>
 <section id="ads-screen" hidden>
 <div class="subhead"><h1 class="panel-title">Just us.</h1><button class="back" data-home>← Menu</button></div>
 <canvas class="menu-art" id="ads-canvas" width="320" height="320" aria-label="A smiling red blob"></canvas>
-<div class="card"><p class="eyebrow">REMOVE ADS</p><h2>Just us. No ads.</h2><p>A one-time purchase will remove banner ads. Same odds. Same stories.</p><button class="action" disabled>Coming soon</button><p class="quiet-note">Purchases aren't available in this test build. No charges.</p><button class="back" id="restore-purchases">Restore purchases</button><p class="quiet-note" id="purchase-message" role="status"></p></div>
+<div class="card"><p class="eyebrow">REMOVE ADS</p><h2>Just us. No ads.</h2><p>A one-time purchase will remove banner ads. Same odds. Same stories.</p><button class="action" id="buy-remove-ads" disabled>Remove Ads</button><p class="quiet-note" id="purchase-note">One payment. No subscription.</p><button class="back" id="restore-purchases">Restore purchases</button><p class="quiet-note" id="purchase-message" role="status"></p></div>
 </section>
 <section id="game-screen" hidden>
 <div class="game-nav"><button class="back" id="game-menu">← Menu</button><span>HARDCORE</span></div>
@@ -733,7 +749,7 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 <p id="save-warning" hidden>Saving is unavailable here. Progress lasts only while this page stays open.</p>
 <p class="notice">Finish odds: 1 in 5,000,000 per run.<br>Independent explosion risk: about 1 in 3,242 per tap.<br>Explosions reset your run. Your personal best stays.</p>
 </section><footer>SMALL BLOB. BIG AMBITIONS.</footer></main>
-<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><h2 id="audio-title">Music &amp; squishes</h2><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button></dialog>
+<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><h2 id="audio-title">Music &amp; squishes</h2><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details><div class="audio-actions"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button><button class="back" id="privacy-options" hidden>Ad privacy</button></div></dialog>
 <script>(function (root) {
   'use strict';
   const GOAL = 50000;
@@ -947,6 +963,41 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   root.BlobAudio = BlobAudio;
 })(globalThis);
 </script>
+<script>(function (root) {
+  'use strict';
+  // A UI adapter only. Ownership is decided and stored by native Play Billing,
+  // never by the game's localStorage or a JavaScript purchase-success message.
+  function createStore(bridge, changed) {
+    let state = {native: false, adsRemoved: false, canBuy: false, busy: false, price: '',
+      message: 'Purchases are available in the Android app through Google Play.', privacyRequired: false};
+    return {
+      get state() { return {...state}; },
+      applyState(next) {
+        if (!next || typeof next !== 'object') return;
+        state = {native: next.native === true, adsRemoved: next.adsRemoved === true,
+          canBuy: next.canBuy === true, busy: next.busy === true,
+          price: typeof next.price === 'string' ? next.price : '',
+          message: typeof next.message === 'string' ? next.message : '',
+          privacyRequired: next.privacyRequired === true};
+        changed({...state});
+      },
+      request(action) {
+        if (!['ready', 'buy', 'restore', 'privacy'].includes(action)) return;
+        if (!bridge || typeof bridge.postMessage !== 'function') {
+          state.message = 'Purchases are available in the Android app through Google Play.';
+          changed({...state});
+          return;
+        }
+        if (action === 'buy' && (!state.canBuy || state.busy || state.adsRemoved || !state.price)) return;
+        try { bridge.postMessage(action); }
+        catch (_) { state.message = 'Google Play is unavailable. Please reopen the app and try again.'; changed({...state}); }
+      }
+    };
+  }
+  if (typeof module !== 'undefined' && module.exports) module.exports = createStore;
+  else root.createSplatStore = createStore;
+})(globalThis);
+</script>
 <script>
 const $=id=>document.getElementById(id),key='clickclickboom.v1',fmt=n=>n.toLocaleString();
 const audioDialog=$('audio-dialog');
@@ -974,7 +1025,22 @@ function navigate(next){if(audioDialog.open)audioDialog.close();const now=perfor
 window.handleAndroidBack=()=>{if(audioDialog.open){audioDialog.close();return true}if(screen==='menu')return false;navigate('menu');return true};
 document.querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>navigate('menu'));
 $('play-button').onclick=()=>navigate('game');$('stats-button').onclick=()=>navigate('stats');$('ads-button').onclick=()=>navigate('ads');$('game-menu').onclick=()=>navigate('menu');
-$('restore-purchases').onclick=()=>{$('purchase-message').textContent="There are no purchases to restore in this test build."};
+const store=createSplatStore(window.SplatStore, status=>{
+  $('buy-remove-ads').disabled=!status.canBuy||status.busy||status.adsRemoved||!status.price;
+  $('buy-remove-ads').textContent=status.adsRemoved?'Ads removed ✓':status.price?'Remove Ads · '+status.price:'Remove Ads';
+  $('restore-purchases').disabled=status.busy;
+  $('purchase-message').textContent=status.message;
+  $('purchase-note').textContent=status.adsRemoved?'Thank you for backing the blob!':'One payment. No subscription.';
+  $('ads-button').textContent=status.adsRemoved?'Ads removed ✓':'Remove Ads';
+  $('privacy-options').hidden=!status.privacyRequired;
+  if(status.native){document.documentElement.classList.add('native-host');window.setAdBannerHeight(0)}
+});
+window.SplatNative={applyState:status=>store.applyState(status)};
+$('buy-remove-ads').onclick=()=>store.request('buy');
+$('restore-purchases').onclick=()=>store.request('restore');
+$('privacy-options').onclick=()=>store.request('privacy');
+$('purchase-message').textContent=store.state.message;
+store.request('ready');
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();window.handleAndroidBack()}});
 let mode=state.status==='dead'?'boom':'idle',started=performance.now(),ready=false,unlockAt=0;
 function play(next){mode=next;started=performance.now();if(next==='boom'){sound.stop();sound.play('exploding',animations.boom.ms*2/1000);sound.play('landing',animations.boom.ms*4/1000)}}

@@ -32,6 +32,7 @@ jobs:
           node tests/game.test.js
           node tests/story.test.js
           node tests/milestones.test.js
+          node tests/store.test.js
           python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Install Android platform
         run: |
@@ -56,7 +57,11 @@ jobs:
           SPLAT_UPLOAD_STORE_PASSWORD: ${{ secrets.SPLAT_UPLOAD_STORE_PASSWORD }}
           SPLAT_UPLOAD_KEY_ALIAS: ${{ secrets.SPLAT_UPLOAD_KEY_ALIAS }}
           SPLAT_UPLOAD_KEY_PASSWORD: ${{ secrets.SPLAT_UPLOAD_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon --max-workers=2 assembleDebug assembleDebugAndroidTest bundleRelease lintDebug lintRelease
+          SPLAT_LIVE_ADS: ${{ vars.SPLAT_LIVE_ADS || 'false' }}
+          SPLAT_ADMOB_APP_ID: ${{ vars.SPLAT_ADMOB_APP_ID }}
+          SPLAT_ADMOB_BANNER_ID: ${{ vars.SPLAT_ADMOB_BANNER_ID }}
+          SPLAT_BILLING_PUBLIC_KEY: ${{ vars.SPLAT_BILLING_PUBLIC_KEY }}
+        run: ./gradlew --no-daemon --max-workers=2 testDebugUnitTest assembleDebug assembleDebugAndroidTest bundleRelease lintDebug lintRelease
       - uses: actions/upload-artifact@v4
         with:
           name: squish-squish-splat-android-debug

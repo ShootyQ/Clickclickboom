@@ -5,6 +5,10 @@ plugins {
 dependencies {
     implementation 'androidx.activity:activity:1.10.1'
     implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'com.google.android.gms:play-services-ads:24.7.0'
+    implementation 'com.google.android.ump:user-messaging-platform:3.2.0'
+    implementation 'com.android.billingclient:billing:8.0.0'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test:runner:1.6.2'
     androidTestImplementation 'androidx.test:core:1.6.1'
@@ -19,6 +23,32 @@ if ([uploadStoreFile, uploadStorePassword, uploadKeyAlias, uploadKeyPassword].an
     throw new GradleException('Upload signing is incomplete. Supply all four SPLAT_UPLOAD_* variables.')
 }
 
+// These are public IDs/keys. Environment variables override the checked-in configuration.
+def monetization = new Properties()
+rootProject.file('monetization.properties').withInputStream { monetization.load(it) }
+def adsAppId = (providers.environmentVariable('SPLAT_ADMOB_APP_ID').orNull ?: monetization.getProperty('admobAppId', ''))
+def bannerId = (providers.environmentVariable('SPLAT_ADMOB_BANNER_ID').orNull ?: monetization.getProperty('bannerAdUnitId', ''))
+def billingPublicKey = (providers.environmentVariable('SPLAT_BILLING_PUBLIC_KEY').orNull ?: monetization.getProperty('billingPublicKey', '')).replaceAll('\\s', '')
+def liveAdsSetting = providers.environmentVariable('SPLAT_LIVE_ADS').orElse('false').get()
+if (!(liveAdsSetting in ['true', 'false'])) throw new GradleException('SPLAT_LIVE_ADS must be true or false.')
+def liveAds = liveAdsSetting == 'true'
+if ((!adsAppId.isEmpty() && !adsAppId.matches('ca-app-pub-[0-9]{16}~[0-9]{10}')) ||
+        (!bannerId.isEmpty() && !bannerId.matches('ca-app-pub-[0-9]{16}/[0-9]{10}'))) {
+    throw new GradleException('Invalid AdMob app ID or banner unit ID.')
+}
+if ((liveAds || !bannerId.isEmpty()) && (adsAppId.isEmpty() || bannerId.isEmpty())) {
+    throw new GradleException('Live banners require both an AdMob app ID and a banner unit ID.')
+}
+if (!billingPublicKey.isEmpty()) {
+    try {
+        java.security.KeyFactory.getInstance('RSA').generatePublic(new java.security.spec.X509EncodedKeySpec(billingPublicKey.decodeBase64()))
+    } catch (Exception ignored) {
+        throw new GradleException('SPLAT_BILLING_PUBLIC_KEY must be the base64 RSA licensing public key from Play Console.')
+    }
+}
+def testAdsAppId = 'ca-app-pub-3940256099942544~3347511713'
+def testBannerId = 'ca-app-pub-3940256099942544/9214589741'
+
 android {
     namespace 'com.shootyq.clickclickboom'
     compileSdk 36
@@ -28,8 +58,10 @@ android {
         applicationId 'com.squishsquishsplat.myapp'
         minSdk 26
         targetSdk 36
-        versionCode 13
-        versionName '0.8.2'
+        versionCode 14
+        versionName '0.9.0'
+        buildConfigField 'String', 'REMOVE_ADS_PRODUCT_ID', '"remove_ads"'
+        buildConfigField 'String', 'BILLING_PUBLIC_KEY', '"' + billingPublicKey + '"'
         testApplicationId 'com.squishsquishsplat.launchtests'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -50,9 +82,15 @@ android {
     buildTypes {
         debug {
             versionNameSuffix '-debug'
+            manifestPlaceholders = [admobAppId: adsAppId.isEmpty() ? testAdsAppId : adsAppId]
+            buildConfigField 'String', 'BANNER_AD_UNIT_ID', '"' + testBannerId + '"'
+            buildConfigField 'boolean', 'TEST_ADS', 'true'
         }
         release {
             minifyEnabled false
+            manifestPlaceholders = [admobAppId: adsAppId.isEmpty() ? testAdsAppId : adsAppId]
+            buildConfigField 'String', 'BANNER_AD_UNIT_ID', '"' + (liveAds ? bannerId : testBannerId) + '"'
+            buildConfigField 'boolean', 'TEST_ADS', liveAds ? 'false' : 'true'
             if (uploadSigningReady) signingConfig signingConfigs.upload
         }
     }

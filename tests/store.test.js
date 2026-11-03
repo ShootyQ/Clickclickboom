@@ -1,0 +1,52 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const createStore = require('../src/store.js');
+test('web preview never offers a fake purchase or grants ownership', () => {
+  let displayed;
+  const store = createStore(null, state => { displayed = state; });
+  store.request('buy');
+  assert.equal(store.state.adsRemoved, false);
+  assert.equal(store.state.canBuy, false);
+  assert.match(displayed.message, /Android app/);
+});
+test('purchase requires native availability and the actual Play price', () => {
+  const calls = [];
+  const store = createStore({postMessage: action => calls.push(action)}, () => {});
+  store.request('buy');
+  store.applyState({native: true, canBuy: true});
+  store.request('buy');
+  assert.deepEqual(calls, []);
+  store.applyState({native: true, canBuy: true, price: '€1.99'});
+  store.request('buy');
+  assert.deepEqual(calls, ['buy']);
+  assert.equal(store.state.adsRemoved, false, 'opening checkout is not a successful purchase');
+  store.applyState({native: true, canBuy: true, price: '€1.99', busy: true});
+  store.request('buy');
+  assert.deepEqual(calls, ['buy'], 'duplicate checkout is blocked');
+  store.applyState({native: true, canBuy: true, price: '€1.99', adsRemoved: true});
+  store.request('buy');
+  assert.deepEqual(calls, ['buy'], 'owned items cannot be bought twice');
+});
+test('restore and consent actions go to native and malformed messages stay text', () => {
+  const calls = [];
+  let displayed;
+  const store = createStore({postMessage: action => calls.push(action)}, state => { displayed = state; });
+  store.request('restore'); store.request('privacy'); store.request('grantAdsRemoved');
+  assert.deepEqual(calls, ['restore', 'privacy']);
+  store.applyState({native: true, adsRemoved: 'true', canBuy: 1, price: {}, message: '<script>no</script>', privacyRequired: true});
+  assert.equal(displayed.adsRemoved, false);
+  assert.equal(displayed.canBuy, false);
+  assert.equal(displayed.price, '');
+  assert.equal(displayed.message, '<script>no</script>');
+  assert.equal(displayed.privacyRequired, true);
+  store.applyState(null);
+  assert.equal(store.state.privacyRequired, true);
+});
+test('a missing native connection reports failure without changing entitlement', () => {
+  let displayed;
+  const store = createStore({postMessage: () => { throw Error('disconnected'); }}, state => { displayed = state; });
+  store.applyState({native: true, adsRemoved: true});
+  store.request('restore');
+  assert.equal(displayed.adsRemoved, true);
+  assert.match(displayed.message, /unavailable/);
+});

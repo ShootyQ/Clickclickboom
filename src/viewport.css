@@ -197,3 +197,19 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 @media (orientation: landscape) and (max-height: 520px) {
   #conversation[data-state='aside'] .speech { transform: none; animation: none; }
 }
+
+/* The Android host allocates the native banner above the WebView. */
+.native-host .ad-slot { display: none; }
+.audio-actions { display: flex; gap: 8px; }
+.audio-actions #sound-toggle { flex: 1; width: auto; }
+#privacy-options { min-height: 44px; padding: 6px 10px; font-size: 14px; }
+#ads-screen .card #buy-remove-ads { min-height: 44px; }
+#ads-screen .card p { line-height: 1.5; }
+@media (orientation: landscape) and (max-height: 520px) {
+  #ads-screen .card { grid-template-rows: 44px minmax(24px, 1fr) 44px max-content; }
+  #ads-screen .card #buy-remove-ads { font-size: 13px; padding: 4px 8px; }
+  #ads-screen .card p:not(.quiet-note):not(.eyebrow),
+  #ads-screen .card .quiet-note:not(#purchase-message),
+  #ads-screen #purchase-message { line-height: 20px; }
+  #ads-screen #purchase-message { grid-column: 1 / -1; grid-row: 4; }
+}

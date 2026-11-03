@@ -20,6 +20,7 @@ core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
 milestone_core = (root / 'src/milestones.js').read_text()
 audio_core = (root / 'src/audio.js').read_text()
+store_core = (root / 'src/store.js').read_text()
 sounds = {name: base64.b64encode((root / 'assets/audio' / filename).read_bytes()).decode()
           for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 music = [{'title': title, 'src': 'data:audio/mpeg;base64,' + base64.b64encode((root / 'assets/music' / filename).read_bytes()).decode()}
@@ -45,7 +46,7 @@ def render(page_style, page_logo, page_sounds, page_music, page_sprite):
     .replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
-    .replace('/* AUDIO_CORE */', audio_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
+    .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
     .replace('/* MUSIC_FILES */', json.dumps(page_music))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* SPRITE_DATA */', page_sprite))

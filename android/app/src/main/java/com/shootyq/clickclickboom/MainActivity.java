@@ -4,6 +4,9 @@ import android.annotation.SuppressLint;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.webkit.WebViewAssetLoader;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
+import androidx.webkit.WebMessageCompat;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,11 +26,16 @@ import android.widget.Button;
 import android.view.Gravity;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
+import java.util.Set;
+import org.json.JSONObject;
 
-/** Offline Android host. The bundled game owns gameplay and local saves. */
+/** Local game host. Native consent, ads and billing are isolated from the game WebView. */
 public final class MainActivity extends ComponentActivity {
     private WebView game;
     private FrameLayout root;
+    private StoreController store;
+    private BannerController ads;
+    private boolean pageReady, bridgeReady, foreground;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +58,11 @@ public final class MainActivity extends ComponentActivity {
             }
             return insets.consumeSystemWindowInsets();
         });
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        FrameLayout bannerContainer = new FrameLayout(this);
+        bannerContainer.setContentDescription("Advertisement");
+        content.addView(bannerContainer, new LinearLayout.LayoutParams(-1, -2));
         game = new WebView(this);
         game.setId(R.id.game_webview);
         game.setBackgroundColor(cream);
@@ -66,6 +79,12 @@ public final class MainActivity extends ComponentActivity {
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .build();
         game.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                if ("https://appassets.androidplatform.net/assets/index.html".equals(url)) {
+                    pageReady = true;
+                    publishStoreState();
+                }
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 WebResourceResponse local = assets.shouldInterceptRequest(request.getUrl());
                 if (local != null) return local;
@@ -89,15 +108,60 @@ public final class MainActivity extends ComponentActivity {
             }
         });
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
-        root.addView(game, new FrameLayout.LayoutParams(-1, -1));
+        content.addView(game, new LinearLayout.LayoutParams(-1, 0, 1));
+        root.addView(content, new FrameLayout.LayoutParams(-1, -1));
+        store = new StoreController(this, this::publishStoreState);
+        ads = new BannerController(this, bannerContainer, this::publishStoreState);
+        bridgeReady = WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER);
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            WebViewCompat.addWebMessageListener(game, "SplatStore", Set.of("https://appassets.androidplatform.net"),
+                    (view, message, sourceOrigin, isMainFrame, replyProxy) -> {
+                        if (!isMainFrame || message.getType() != WebMessageCompat.TYPE_STRING
+                                || !"https://appassets.androidplatform.net".equals(sourceOrigin.toString())) return;
+                        String action = message.getData();
+                        runOnUiThread(() -> {
+                            if (isFinishing() || isDestroyed()) return;
+                            if ("buy".equals(action)) store.buy();
+                            else if ("restore".equals(action)) store.restore();
+                            else if ("privacy".equals(action)) ads.showPrivacyOptions();
+                            else if ("ready".equals(action)) publishStoreState();
+                        });
+                    });
+        }
         setContentView(root);
         root.requestApplyInsets();
         // Stream local files instead of copying a huge base64 HTML string through
         // the Java heap and WebView IPC. The origin stays unchanged for saves.
         game.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+        if (bridgeReady) root.post(store::start);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() { handleBack(); }
         });
+    }
+
+    private void publishStoreState() {
+        if (isDestroyed() || store == null || ads == null) return;
+        if (bridgeReady) ads.update(store.adsRemoved(), store.ownershipChecked());
+        if (!pageReady || game == null) return;
+        JSONObject state = new JSONObject();
+        try {
+            state.put("native", true);
+            state.put("adsRemoved", store.adsRemoved());
+            state.put("canBuy", bridgeReady && store.canBuy());
+            state.put("busy", store.busy());
+            state.put("price", store.price());
+            state.put("message", bridgeReady ? store.message() : "Update Android System WebView to use purchases.");
+            state.put("privacyRequired", bridgeReady && ads.privacyRequired());
+            state.put("testAds", BuildConfig.TEST_ADS);
+        } catch (org.json.JSONException exception) { throw new IllegalStateException(exception); }
+        game.evaluateJavascript("window.SplatNative && window.SplatNative.applyState(" + state + ")", null);
+        updateAudioBackground();
+    }
+
+    private void updateAudioBackground() {
+        if (game != null && pageReady) game.evaluateJavascript(
+                "window.setAudioBackgrounded && window.setAudioBackgrounded(" +
+                (!foreground || (store != null && store.purchaseSheetOpen()) || (ads != null && ads.modalOpen())) + ")", null);
     }
 
     private void handleBack() {
@@ -108,10 +172,13 @@ public final class MainActivity extends ComponentActivity {
 
     private void showLoadError() {
         if (game != null) {
-            root.removeView(game);
+            ((android.view.ViewGroup) game.getParent()).removeView(game);
             game.destroy();
             game = null;
         }
+        pageReady = false;
+        if (ads != null) ads.close();
+        if (store != null) store.close();
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setGravity(Gravity.CENTER);
@@ -130,6 +197,8 @@ public final class MainActivity extends ComponentActivity {
     }
 
     @Override protected void onPause() {
+        foreground = false;
+        if (ads != null) ads.pause();
         if (game != null) {
             game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(true)", null);
             game.onPause();
@@ -139,13 +208,18 @@ public final class MainActivity extends ComponentActivity {
 
     @Override protected void onResume() {
         super.onResume();
+        foreground = true;
         if (game != null) {
             game.onResume();
-            game.evaluateJavascript("window.setAudioBackgrounded && window.setAudioBackgrounded(false)", null);
+            updateAudioBackground();
         }
+        if (ads != null) ads.resume();
+        if (store != null && bridgeReady) store.start();
     }
 
     @Override protected void onDestroy() {
+        if (ads != null) ads.close();
+        if (store != null) store.close();
         if (game != null) game.destroy();
         super.onDestroy();
     }

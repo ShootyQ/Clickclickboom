@@ -1,6 +1,6 @@
 # Android testing
 
-The direct-install APK is an **offline debug build**. The signed Play AAB is a release build for internal testing (see below). Both wrap the same bundled game used by the website in a native Android Activity. Minimum Android version: **8.0 (API 26)**. Target: **Android 16 (API 36)**.
+The direct-install APK is a **debug build with local gameplay and native test-ad/Play integrations**. The signed Play AAB is a release build for internal testing (see below). Both wrap the same bundled game used by the website in a native Android Activity. Minimum Android version: **8.0 (API 26)**. Target: **Android 16 (API 36)**.
 
 ## Install on a phone
 
@@ -14,7 +14,7 @@ adb install -r app-debug.apk
 adb shell am start -n com.shootyq.clickclickboom.debug/com.shootyq.clickclickboom.MainActivity
 ```
 
-Debug keys can differ between local builds and fresh CI runners. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, uninstall the old debug app before installing. **Uninstalling clears its local progress.** A Play release will need a stable signing identity and an approved final application ID.
+Debug keys can differ between local builds and fresh CI runners. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, uninstall the old debug app before installing. **Uninstalling clears its local progress.** The Play release uses the existing stable upload signing key and application ID `com.squishsquishsplat.myapp`.
 
 ## Build locally
 
@@ -33,7 +33,7 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 The Gradle asset task packages **`dist/`**, including its small entry page and separate images/audio; rebuild it with `python3 build.py` after changing stories, dialogue, or JavaScript. Android loads `https://appassets.androidplatform.net/assets/index.html` through a local asset loader, preserving the existing localStorage origin. It does not copy the legacy standalone base64 HTML into Java memory or download content from the website. Existing browser saves do not transfer to the Android app.
 
-CI builds the Android instrumentation APK and launches an API 36 emulator. The startup test must find the rendered game title, full logo, and all three decoded SFX buffers. To run it with a connected emulator or phone locally: `./gradlew connectedDebugAndroidTest` from `android/`.
+CI builds the Android instrumentation APK and launches an API 36 emulator. The startup test must find the rendered game title, full logo, native store bridge, and all three decoded SFX buffers. To run it with a connected emulator or phone locally: `./gradlew connectedDebugAndroidTest` from `android/`.
 
 ## Phone checks
 
@@ -68,3 +68,7 @@ Bundle output: `android/app/build/outputs/bundle/release/app-release.aab`. With 
 For repeatable signed bundles in GitHub Actions, enter the four entries from the private backup's `github-actions-secrets.json` into **repository Settings → Secrets and variables → Actions**. These are `SPLAT_UPLOAD_KEYSTORE_BASE64`, `SPLAT_UPLOAD_STORE_PASSWORD`, `SPLAT_UPLOAD_KEY_ALIAS`, and `SPLAT_UPLOAD_KEY_PASSWORD`. Values belong in secret fields, never in workflow source. CI publishes `squish-squish-splat-play-internal` only when signing is configured, and deletes its temporary keystore afterward. Without secrets it publishes only the debug APK, while still compiling/linting the release variant.
 
 In Play Console, create the new app, open **Testing → Internal testing**, create a release, enroll in Play App Signing, and upload the signed AAB. Add testers and provide them the opt-in link after you roll out the internal release. Complete any setup items Play Console requires for this account. This work prepares files; it does not create a Console app or upload/roll out a release. Increase `versionCode` for each subsequent upload.
+
+## Ads and billing
+
+See [MONETIZATION.md](MONETIZATION.md). Test IDs are the default, and purchasing stays disabled until the Play public key and one-time product are configured. The native SDKs use the network, while the game assets and statistics remain local. Use a Play license-test account to verify checkout; internal-track access alone does not prevent real charges.
