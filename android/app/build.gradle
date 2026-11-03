@@ -21,11 +21,11 @@ android {
     buildFeatures { buildConfig true }
 
     defaultConfig {
-        applicationId 'com.shootyq.squishsquishsplat'
+        applicationId 'com.squishsquishsplat.myapp'
         minSdk 26
         targetSdk 36
-        versionCode 7
-        versionName '0.7.0'
+        versionCode 8
+        versionName '0.7.1'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

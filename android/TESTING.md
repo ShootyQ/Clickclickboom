@@ -50,7 +50,7 @@ For Play testing, use the signed AAB below and complete the Console setup items,
 
 ## Google Play internal testing: signed AAB
 
-Use a **signed release `.aab`** for Play Console's Internal testing track. The debug APK is for direct installation and is a separate app. The Play application ID is **`com.shootyq.squishsquishsplat`**; the original debug ID is retained for existing sideloaded saves. Release builds disable WebView debugging. The Play and debug apps have separate local progress.
+Use a **signed release `.aab`** for Play Console's Internal testing track. The debug APK is for direct installation and is a separate app. The Play application ID is **`com.squishsquishsplat.myapp`**; the original debug ID is retained for existing sideloaded saves. Release builds disable WebView debugging. The Play and debug apps have separate local progress.
 
 A dedicated upload key has been created for this new app and kept outside the repository. Retain its private backup; it contains the encrypted keystore and its passwords. Never commit the backup, upload it as a public Actions artifact, or share its contents in chat. Google Play App Signing manages the app-signing key; our key signs uploads. The first signed AAB registers the upload identity when you enroll the app.
 
