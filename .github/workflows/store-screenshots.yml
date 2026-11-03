@@ -1,0 +1,99 @@
+name: Capture Android store screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/store-screenshots.yml
+      - android/app/src/androidTest/java/com/shootyq/clickclickboom/StoreScreenshotsTest.java
+
+permissions:
+  contents: write
+
+concurrency:
+  group: store-screenshots
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build capture APKs
+        run: |
+          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -f "$sdk_root/platforms/android-36/android.jar" ] || [ ! -f "$sdk_root/build-tools/36.0.0/aapt2" ]; then
+            sdk_manager=$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)
+            "$sdk_manager" --sdk_root="$sdk_root" 'platforms;android-36' 'build-tools;36.0.0'
+          fi
+          python3 build.py
+          cd android
+          ./gradlew --no-daemon --max-workers=2 assembleDebug assembleDebugAndroidTest
+      - name: Enable emulator acceleration
+        run: sudo chmod 666 /dev/kvm
+      - name: Locate Android tools
+        run: |
+          sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          sdk_manager=$(find "$sdk_root/cmdline-tools" -path '*/bin/sdkmanager' -type f -print -quit)
+          echo "$(dirname "$sdk_manager")" >> "$GITHUB_PATH"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader -memory 2048 -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb shell wm size 1080x1920
+            adb shell wm density 360
+            adb shell settings put global sysui_demo_allowed 1
+            adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941
+            adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+            adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb install -r android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w -r -e class com.shootyq.clickclickboom.StoreScreenshotsTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > screenshot-result.txt
+            cat screenshot-result.txt
+            grep -q 'OK (1 test)' screenshot-result.txt
+            mkdir -p "$RUNNER_TEMP/store-screenshots"
+            adb pull /sdcard/Android/data/com.shootyq.clickclickboom.debug/files/store-screenshots/. "$RUNNER_TEMP/store-screenshots/"
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-gameplay-screenshots
+          path: ${{ runner.temp }}/store-screenshots/*.png
+          if-no-files-found: error
+      - name: Save captures on screenshots branch
+        run: |
+          if git fetch origin store-screenshots; then
+            git switch --detach origin/store-screenshots
+          else
+            git switch -c store-screenshots
+          fi
+          mkdir -p assets/store/screenshots
+          cp "$RUNNER_TEMP/store-screenshots/"*.png assets/store/screenshots/
+          git add assets/store/screenshots
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Capture three banner-free Android gameplay screenshots'
+          git push origin HEAD:refs/heads/store-screenshots
+      - name: Retain capture diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-screenshot-diagnostics
+          path: screenshot-result.txt
