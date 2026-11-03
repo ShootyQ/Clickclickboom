@@ -5,6 +5,10 @@ import json
 
 root = Path(__file__).resolve().parent
 shell = (root / 'src/shell.html').read_text()
+style = (root / 'src/style.css').read_text()
+buttons = base64.b64encode((root / 'assets/ui/menu-buttons.png').read_bytes()).decode()
+logo = base64.b64encode((root / 'assets/ui/logo.png').read_bytes()).decode()
+style = style.replace('/* BUTTON_ART */', 'data:image/png;base64,' + buttons)
 core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
 milestone_core = (root / 'src/milestones.js').read_text()
@@ -30,6 +34,7 @@ assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
 (root / 'index.html').write_text(shell.replace('/* GAME_CORE */', core)
+    .replace('/* UI_STYLE */', style).replace('/* LOGO_ART */', 'data:image/png;base64,' + logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
     .replace('/* AUDIO_CORE */', audio_core).replace('/* AUDIO_FILES */', json.dumps(sounds))
