@@ -97,6 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -134,16 +135,7 @@ jobs:
             cat launch-test/instrumentation.txt
             adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > launch-test/logcat.txt
             grep -q 'OK (2 tests)' launch-test/instrumentation.txt
-            adb shell cmd overlay enable-exclusive --category com.android.internal.display.cutout.emulation.tall
-            for navigation in gestural threebutton; do
-              adb shell cmd overlay enable-exclusive --category "com.android.internal.systemui.navbar.$navigation"
-              adb shell am instrument -w -r -e class com.shootyq.clickclickboom.EdgeToEdgeTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > "launch-test/insets-$navigation.txt"
-              cat "launch-test/insets-$navigation.txt"
-              adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > "launch-test/logcat-$navigation.txt"
-              grep -q 'OK (1 test)' "launch-test/insets-$navigation.txt"
-              mkdir -p "launch-test/screenshots-$navigation"
-              adb pull /sdcard/Android/data/com.shootyq.clickclickboom.debug/files/edge-to-edge/. "launch-test/screenshots-$navigation/"
-            done
+            bash android/verify-emulator-layout.sh launch-test
       - name: Retain startup result
         if: always()
         uses: actions/upload-artifact@v4
