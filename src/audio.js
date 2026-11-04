@@ -1,7 +1,7 @@
 (function (root) {
   'use strict';
   class BlobAudio {
-    constructor(files, enabled = true, settings = {}, tracks = [], deathTrack = null) {
+    constructor(files, enabled = true, settings = {}, tracks = [], deathTrack = null, victoryTrack = null) {
       this.enabled = enabled;
       const volume = (value, fallback) => Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
       this.sfxVolume = volume(settings.sfxVolume, 0.65);
@@ -50,6 +50,14 @@
           this.deathSource = this.context.createMediaElementSource(this.deathMusic);
           this.deathSource.connect(this.musicGain);
         }
+        if (victoryTrack && victoryTrack.src) {
+          this.victoryMusic = new Audio();
+          this.victoryMusic.preload = 'none';
+          this.victoryMusic.src = victoryTrack.src;
+          this.victoryMusic.loop = true;
+          this.victorySource = this.context.createMediaElementSource(this.victoryMusic);
+          this.victorySource.connect(this.musicGain);
+        }
         this.ready = Promise.all(Object.entries(files).map(async ([name, encoded]) => {
           let data;
           if (encoded.startsWith('assets/')) {
@@ -71,7 +79,7 @@
       }
     }
     resumeMusic() {
-      const active = this.musicMode === 'death' ? this.deathMusic : this.music;
+      const active = this.musicMode === 'victory' ? this.victoryMusic : this.musicMode === 'death' ? this.deathMusic : this.music;
       if (active && this.musicStarted && this.enabled && !this.backgrounded && this.musicVolume > 0) {
         active.play().catch(() => {});
       }
@@ -79,6 +87,7 @@
     pauseMusic() {
       if (this.music) this.music.pause();
       if (this.deathMusic) this.deathMusic.pause();
+      if (this.victoryMusic) this.victoryMusic.pause();
     }
     startDeathMusic() {
       if (!this.deathMusic) return;
@@ -93,6 +102,21 @@
       if (this.deathMusic) { this.deathMusic.pause(); this.deathMusic.currentTime = 0; }
       this.musicMode = 'main';
       // The regular playlist resumes at its previous position, rather than starting over.
+      this.resumeMusic();
+    }
+    startVictoryMusic() {
+      if (!this.victoryMusic || this.musicMode === 'victory') return;
+      this.pauseMusic();
+      this.musicMode = 'victory';
+      this.musicStarted = true;
+      this.victoryMusic.currentTime = 0;
+      this.resumeMusic();
+    }
+    endVictoryMusic() {
+      if (this.musicMode !== 'victory') return;
+      this.victoryMusic.pause();
+      this.victoryMusic.currentTime = 0;
+      this.musicMode = 'main';
       this.resumeMusic();
     }
     setBackground(hidden) {

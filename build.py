@@ -19,6 +19,7 @@ for marker, name in [('/* HAND_FONT */', 'PatrickHand-Regular.ttf'), ('/* TITLE_
 core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
 milestone_core = (root / 'src/milestones.js').read_text()
+finale_core = (root / 'src/finale.js').read_text()
 happy_core = (root / 'src/happy.js').read_text()
 happy_rants = json.loads((root / 'content/happy-rants.json').read_text())
 assert len(happy_rants) == 20 and len({rant['id'] for rant in happy_rants}) == 20
@@ -48,8 +49,8 @@ assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 favicon = base64.b64encode((root / 'assets/ui/favicon-48.png').read_bytes()).decode()
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
-def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music):
-    return (shell.replace('/* GAME_CORE */', core).replace('/* FONT_LICENSES */', font_licenses)
+def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music, page_victory_music, page_victory_sprite):
+    return (shell.replace('/* GAME_CORE */', core).replace('/* FINALE_CORE */', finale_core).replace('/* FONT_LICENSES */', font_licenses)
     .replace('/* FAVICON_ART */', page_icon).replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core).replace('/* HAPPY_CORE */', happy_core)
@@ -57,10 +58,13 @@ def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_ico
     .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
     .replace('/* MUSIC_FILES */', json.dumps(page_music)).replace('/* DEATH_MUSIC_FILE */', json.dumps(page_death_music))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
-    .replace('/* SPRITE_DATA */', page_sprite))
+    .replace('/* VICTORY_MUSIC_FILE */', json.dumps(page_victory_music)).replace('/* VICTORY_SPRITE_DATA */', page_victory_sprite).replace('/* SPRITE_DATA */', page_sprite))
+
+victory_music = {'title': 'VICTORY', 'src': 'data:audio/mpeg;base64,' + base64.b64encode((root / 'assets/music/victory.mp3').read_bytes()).decode()}
+victory_sprite = 'data:image/png;base64,' + base64.b64encode((root / 'assets/blob/blob-victory-sprites.png').read_bytes()).decode()
 
 # Preserve the downloadable standalone page, but do not load it into Android.
-(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite, 'data:image/png;base64,' + favicon, death_music))
+(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite, 'data:image/png;base64,' + favicon, death_music, victory_music, victory_sprite))
 
 # A small entry document plus raw files avoids duplicating megabytes of base64
 # in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
@@ -70,9 +74,9 @@ streaming_style = base_style.replace('/* BUTTON_ART */', 'assets/ui/menu-buttons
 streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in music_tracks]
 streaming_death_music = {'title': 'The Last Squirt', 'src': 'assets/music/the-last-squirt.mp3'}
-(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png', streaming_death_music))
+(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png', streaming_death_music, {'title': 'VICTORY', 'src': 'assets/music/victory.mp3'}, 'assets/blob/blob-victory-sprites.png'))
 shutil.copyfile(root / 'privacy.html', dist / 'privacy.html')
-asset_paths = ['ui/favicon-48.png', 'ui/app-icon-512.png', 'blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
+asset_paths = ['blob/blob-victory-sprites.png', 'music/victory.mp3', 'ui/favicon-48.png', 'ui/app-icon-512.png', 'blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
                'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
                'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3', 'music/squish-squish-3.mp3', 'music/the-last-squirt.mp3',
                'fonts/PatrickHand-Regular.ttf', 'fonts/LilitaOne-Regular.ttf',

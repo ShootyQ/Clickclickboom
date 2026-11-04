@@ -51,7 +51,7 @@ public class MusicPlaybackTest {
         js("Math.random=window.musicTestRandom;true");
         assertEquals("true", js("sound.music.paused&&sound.deathMusic.loop"));
     }
-    @Test(timeout = 150000) public void explosionLoopsUntilMenuOrNewGame() throws Exception {
+    @Test(timeout = 180000) public void explosionLoopsUntilMenuOrNewGame() throws Exception {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         context.getSharedPreferences("splat.store", Context.MODE_PRIVATE).edit().putBoolean("adsRemoved", true).commit();
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
@@ -76,6 +76,22 @@ public class MusicPlaybackTest {
             await("!document.getElementById('restart').disabled", 5);
             tap("restart");
             await("state.status==='alive'&&sound.musicMode==='main'&&!sound.music.paused&&sound.deathMusic.paused&&sound.deathMusic.currentTime===0", 10);
+            // Real winning tap must switch screens and start the actual victory MP3.
+            js("state=BlobGame.restore({run:49999,best:49999,lifetime:60000});Math.random=()=>0.99;showFinale();render();true");
+            tap("blob");
+            await("state.status==='won'&&screen==='victory'&&!sound.victoryMusic.paused&&sound.victoryMusic.currentTime>0.1", 20);
+            assertEquals("true", js("sound.music.paused&&sound.deathMusic.paused&&sound.victoryMusic.loop&&sound.victoryMusic.src.endsWith('/victory.mp3')&&victorySheet.complete&&victorySheet.naturalWidth===1536"));
+            js("sound.setVolume('music',0);true");
+            assertEquals("true",js("sound.victoryMusic.paused"));
+            js("sound.setVolume('music',0.35);true");
+            await("!sound.victoryMusic.paused",5);
+            tap("victory-menu");
+            await("screen==='menu'&&sound.victoryMusic.paused&&!sound.music.paused",10);
+            tap("play-button");
+            await("screen==='victory'&&!sound.victoryMusic.paused",10);
+            tap("victory-restart");
+            await("screen==='game'&&state.run===0&&state.best===50000&&sound.musicMode==='main'&&sound.victoryMusic.paused",10);
+            js("Math.random=window.musicTestRandom;true");
         } finally {
             context.getSharedPreferences("splat.store", Context.MODE_PRIVATE).edit().clear().commit();
         }

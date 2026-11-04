@@ -236,3 +236,36 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   .happy-hearts > span:nth-child(2) { font-size: 17px; top: -6px; }
 }
 @media (prefers-reduced-motion: reduce) { .happy-hearts > span { animation: none; } }
+
+/* The impossible run gets its own little parade. */
+#conversation[data-state='finale'] .speech {background:#fff0b7;border-color:#bc7827;font-family:'Lilita One',cursive;color:#873c1e;font-size:clamp(17px,2.7dvh,23px)}
+#conversation[data-state='finale'] .story-ribbon {color:#a34425}
+#victory-screen {position:relative;isolation:isolate;min-height:0;display:grid;grid-template-rows:auto auto auto minmax(44px,1fr) minmax(54px,auto) auto auto;gap:5px;text-align:center;align-items:center}
+#victory-screen[hidden] {display:none}
+#confetti {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+.victory-kicker {font-size:11px;letter-spacing:1.5px;font-weight:bold;margin:0;color:#995335}
+#victory-title {font-family:'Lilita One',cursive;font-size:clamp(30px,6dvh,54px);line-height:1.12;margin:0;color:#742c18;text-shadow:2px 3px #efd39d}
+#victory-title span {color:#db292b}
+.victory-record {display:flex;flex-direction:column;align-items:center;line-height:1}
+.victory-record strong {font-family:'Lilita One',cursive;font-size:clamp(37px,7dvh,66px);color:#813617}
+.victory-record span {font-size:11px;letter-spacing:1.2px;margin-top:4px;font-weight:bold}
+.victory-stage {position:relative;align-self:stretch;min-height:0;display:flex;align-items:center;justify-content:center}
+#victory-blob {height:100%;width:100%;max-width:300px;max-height:300px;object-fit:contain;filter:drop-shadow(0 7px 0 #d5b16a55)}
+.victory-stamp {position:absolute;right:0;bottom:4px;transform:rotate(-7deg);background:#ffd86e;border:2px solid #95542f;border-radius:9px;padding:6px 9px;font-family:'Lilita One',cursive;font-size:12px;box-shadow:2px 3px #d8be8b}
+.victory-spark {position:absolute;left:8%;top:15%;color:#e4a52e;font-size:35px}
+.victory-cheer {margin:0;padding:8px 12px;background:#fffbed;border:2px solid #975933;border-radius:14px;box-shadow:3px 4px #dec69c;font-family:'Lilita One',cursive;font-size:clamp(16px,2.6dvh,21px);line-height:1.15;min-height:54px;display:flex;align-items:center;justify-content:center}
+.victory-actions {display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:8px}
+.victory-actions button {min-height:44px;padding:7px 10px;font-family:'Lilita One',cursive;font-size:18px}
+.victory-note {font-size:11px;line-height:1.1;margin:2px 0;color:#925b3e}
+@media(max-height:570px) {.victory-kicker{display:none}#victory-screen{grid-template-rows:auto auto minmax(44px,1fr) minmax(45px,auto) auto auto;gap:3px}.victory-cheer{min-height:45px;font-size:16px;padding:5px 9px}.victory-stamp{font-size:10px;padding:4px}.victory-note{font-size:10px}#victory-title{font-size:30px}.victory-record strong{font-size:37px}}
+@media(orientation:landscape) and (max-height:500px) {#victory-screen{grid-template-columns:1fr 1fr;grid-template-rows:auto auto minmax(44px,1fr) auto;column-gap:15px}#victory-title{grid-area:1/1}.victory-record{grid-area:2/1}.victory-stage{grid-area:1/2/4/3}.victory-cheer{grid-area:3/1}.victory-actions{grid-area:4/1/5/3}.victory-note,.victory-kicker{display:none}}
+.victory-actions button {margin:0;line-height:1.15}
+@media(orientation:landscape) and (max-height:500px) {
+ #victory-screen {grid-template-rows:auto auto minmax(44px,1fr)}
+ #victory-title {font-size:24px;white-space:nowrap}#victory-title br{display:none}#victory-title span::before{content:' '}
+ .victory-record strong{font-size:30px}.victory-record span{font-size:10px}
+ .victory-stage{grid-area:1/2/3/3}.victory-stamp{font-size:9px;padding:3px}
+ .victory-actions{grid-area:3/2;grid-template-columns:minmax(0,1fr) 75px;align-self:end;gap:5px}
+ .victory-actions button{font-size:15px;padding:4px}
+ .victory-cheer{font-size:14px;min-height:44px;padding:4px 6px}
+}
