@@ -1,13 +1,14 @@
 (function (root) {
   'use strict';
   class BlobAudio {
-    constructor(files, enabled = true, settings = {}, tracks = []) {
+    constructor(files, enabled = true, settings = {}, tracks = [], deathTrack = null) {
       this.enabled = enabled;
       const volume = (value, fallback) => Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
       this.sfxVolume = volume(settings.sfxVolume, 0.65);
       this.musicVolume = volume(settings.musicVolume, 0.35);
       this.tracks = tracks;
       this.trackIndex = 0;
+      this.musicMode = 'main';
       this.backgrounded = false;
       this.musicStarted = false;
       this.sources = new Set();
@@ -40,6 +41,15 @@
             this.resumeMusic();
           });
         }
+        if (deathTrack && deathTrack.src) {
+          this.deathMusic = new Audio();
+          // Prepare the short loop before an explosion, without decoding long songs into PCM buffers.
+          this.deathMusic.preload = 'auto';
+          this.deathMusic.src = deathTrack.src;
+          this.deathMusic.loop = true;
+          this.deathSource = this.context.createMediaElementSource(this.deathMusic);
+          this.deathSource.connect(this.musicGain);
+        }
         this.ready = Promise.all(Object.entries(files).map(async ([name, encoded]) => {
           let data;
           if (encoded.startsWith('assets/')) {
@@ -61,15 +71,35 @@
       }
     }
     resumeMusic() {
-      if (this.music && this.musicStarted && this.enabled && !this.backgrounded && this.musicVolume > 0) {
-        this.music.play().catch(() => {});
+      const active = this.musicMode === 'death' ? this.deathMusic : this.music;
+      if (active && this.musicStarted && this.enabled && !this.backgrounded && this.musicVolume > 0) {
+        active.play().catch(() => {});
       }
+    }
+    pauseMusic() {
+      if (this.music) this.music.pause();
+      if (this.deathMusic) this.deathMusic.pause();
+    }
+    startDeathMusic() {
+      if (!this.deathMusic) return;
+      this.pauseMusic();
+      this.musicMode = 'death';
+      this.musicStarted = true;
+      this.deathMusic.currentTime = 0;
+      this.resumeMusic();
+    }
+    endDeathMusic() {
+      if (this.musicMode !== 'death') return;
+      if (this.deathMusic) { this.deathMusic.pause(); this.deathMusic.currentTime = 0; }
+      this.musicMode = 'main';
+      // The regular playlist resumes at its previous position, rather than starting over.
+      this.resumeMusic();
     }
     setBackground(hidden) {
       this.backgrounded = hidden;
       if (hidden) {
         this.stop();
-        if (this.music) this.music.pause();
+        this.pauseMusic();
       } else if (this.musicStarted && this.enabled) {
         if (this.context) this.context.resume().catch(() => {});
         this.resumeMusic();
@@ -85,7 +115,7 @@
       } else if (channel === 'music') {
         this.musicVolume = value;
         if (this.musicGain) this.musicGain.gain.value = this.enabled ? value : 0;
-        if (!value && this.music) this.music.pause();
+        if (!value) this.pauseMusic();
       }
       this.unlock();
     }
@@ -94,7 +124,7 @@
       if (!enabled) this.stop();
       if (this.master) this.master.gain.value = enabled ? this.sfxVolume : 0;
       if (this.musicGain) this.musicGain.gain.value = enabled ? this.musicVolume : 0;
-      if (!enabled && this.music) this.music.pause();
+      if (!enabled) this.pauseMusic();
       if (enabled) this.unlock();
     }
     play(name, delay = 0) {

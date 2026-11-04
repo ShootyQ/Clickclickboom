@@ -34,6 +34,7 @@ jobs:
           node tests/story.test.js
           node tests/milestones.test.js
           node tests/store.test.js
+          node tests/audio.test.js
       - name: Build streaming game
         run: |
           python3 build.py

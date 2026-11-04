@@ -72,3 +72,5 @@ In Play Console, create the new app, open **Testing → Internal testing**, crea
 ## Ads and billing
 
 See [MONETIZATION.md](MONETIZATION.md). Test IDs are the default, and purchasing stays disabled until the Play public key and one-time product are configured. The native SDKs use the network, while the game assets and statistics remain local. Use a Play license-test account to verify checkout; internal-track access alone does not prevent real charges.
+
+- Music: confirm Slimey Breeze → Slimey Breezy Day → Squish Squish 3 → Slimey Breeze. On explosion, The Last Squirt starts immediately and loops until Menu or New Game. Confirm no overlap, Music/mute controls affect both music modes, SFX volume does not mute the song, and background/resume keeps the correct mode.

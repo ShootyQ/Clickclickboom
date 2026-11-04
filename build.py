@@ -23,8 +23,10 @@ audio_core = (root / 'src/audio.js').read_text()
 store_core = (root / 'src/store.js').read_text()
 sounds = {name: base64.b64encode((root / 'assets/audio' / filename).read_bytes()).decode()
           for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
+music_tracks = [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3'), ('Squish Squish 3', 'squish-squish-3.mp3')]
 music = [{'title': title, 'src': 'data:audio/mpeg;base64,' + base64.b64encode((root / 'assets/music' / filename).read_bytes()).decode()}
-         for title, filename in [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3')]]
+         for title, filename in music_tracks]
+death_music = {'title': 'The Last Squirt', 'src': 'data:audio/mpeg;base64,' + base64.b64encode((root / 'assets/music/the-last-squirt.mp3').read_bytes()).decode()}
 milestones = json.loads((root / 'content/milestones.json').read_text())
 assert len(milestones) == 50, 'Expected 50 milestones'
 assert all(len(lines) == 10 and len(set(lines)) == 10 for lines in milestones.values()), 'Each milestone needs 10 unique lines'
@@ -42,18 +44,18 @@ assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 favicon = base64.b64encode((root / 'assets/ui/favicon-48.png').read_bytes()).decode()
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
-def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon):
+def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music):
     return (shell.replace('/* GAME_CORE */', core).replace('/* FONT_LICENSES */', font_licenses)
     .replace('/* FAVICON_ART */', page_icon).replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
     .replace('/* MILESTONE_CORE */', milestone_core)
     .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
-    .replace('/* MUSIC_FILES */', json.dumps(page_music))
+    .replace('/* MUSIC_FILES */', json.dumps(page_music)).replace('/* DEATH_MUSIC_FILE */', json.dumps(page_death_music))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* SPRITE_DATA */', page_sprite))
 
 # Preserve the downloadable standalone page, but do not load it into Android.
-(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite, 'data:image/png;base64,' + favicon))
+(root / 'index.html').write_text(render(style, 'data:image/png;base64,' + logo, sounds, music, 'data:image/png;base64,' + sprite, 'data:image/png;base64,' + favicon, death_music))
 
 # A small entry document plus raw files avoids duplicating megabytes of base64
 # in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
@@ -61,12 +63,13 @@ dist = root / 'dist'
 dist.mkdir(exist_ok=True)
 streaming_style = base_style.replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png').replace('/* HAND_FONT */', 'assets/fonts/PatrickHand-Regular.ttf').replace('/* TITLE_FONT */', 'assets/fonts/LilitaOne-Regular.ttf')
 streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
-streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in [('Slimey Breeze', 'slimey-breeze.mp3'), ('Slimey Breezy Day', 'slimey-breezy-day.mp3')]]
-(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png'))
+streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in music_tracks]
+streaming_death_music = {'title': 'The Last Squirt', 'src': 'assets/music/the-last-squirt.mp3'}
+(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png', streaming_death_music))
 shutil.copyfile(root / 'privacy.html', dist / 'privacy.html')
 asset_paths = ['ui/favicon-48.png', 'ui/app-icon-512.png', 'blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
                'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
-               'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3',
+               'music/slimey-breeze.mp3', 'music/slimey-breezy-day.mp3', 'music/squish-squish-3.mp3', 'music/the-last-squirt.mp3',
                'fonts/PatrickHand-Regular.ttf', 'fonts/LilitaOne-Regular.ttf',
                'fonts/PatrickHand-OFL.txt', 'fonts/LilitaOne-OFL.txt']
 for relative in asset_paths:

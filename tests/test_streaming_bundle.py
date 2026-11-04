@@ -16,7 +16,7 @@ class StreamingBundleTests(unittest.TestCase):
     def test_every_bundled_asset_reference_resolves(self):
         page = (ROOT / 'dist/index.html').read_text()
         paths = set(re.findall(r'assets/[a-zA-Z0-9_./-]+\.(?:png|wav|mp3|ttf)', page))
-        self.assertEqual(len(paths), 12)
+        self.assertEqual(len(paths), 14)
         for relative in paths:
             self.assertTrue((ROOT / 'dist' / relative).is_file(), relative)
             self.assertEqual((ROOT / 'dist' / relative).read_bytes(), (ROOT / relative).read_bytes(), relative)

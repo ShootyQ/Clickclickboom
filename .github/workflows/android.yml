@@ -33,6 +33,7 @@ jobs:
           node tests/story.test.js
           node tests/milestones.test.js
           node tests/store.test.js
+          node tests/audio.test.js
           python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Install Android platform
         run: |
@@ -123,10 +124,10 @@ jobs:
           script: |
             adb install -r launch-test/app-debug.apk
             adb install -r launch-test/app-debug-androidTest.apk
-            adb shell am instrument -w -r -e class com.shootyq.clickclickboom.StartupTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > launch-test/instrumentation.txt
+            adb shell am instrument -w -r -e class com.shootyq.clickclickboom.StartupTest,com.shootyq.clickclickboom.MusicPlaybackTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > launch-test/instrumentation.txt
             cat launch-test/instrumentation.txt
             adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > launch-test/logcat.txt
-            grep -q 'OK (1 test)' launch-test/instrumentation.txt
+            grep -q 'OK (2 tests)' launch-test/instrumentation.txt
       - name: Retain startup result
         if: always()
         uses: actions/upload-artifact@v4
