@@ -58,8 +58,8 @@ android {
         applicationId 'com.squishsquishsplat.myapp'
         minSdk 26
         targetSdk 36
-        versionCode 24
-        versionName '0.15.0'
+        versionCode 25
+        versionName '0.16.0'
         buildConfigField 'String', 'REMOVE_ADS_PRODUCT_ID', '"remove_ads"'
         buildConfigField 'String', 'BILLING_PUBLIC_KEY', '"' + billingPublicKey + '"'
         testApplicationId 'com.squishsquishsplat.launchtests'
