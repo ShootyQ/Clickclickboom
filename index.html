@@ -815,7 +815,8 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 </script>
 <script>(function (root) {
   'use strict';
-  const LOW_NUMBER_CHANCE = 1 / 7;
+  const LOW_NUMBER_CHANCE = 1 / 10;
+  const LOW_NUMBER_MAX = 1000;
   const COOLDOWN_MS = 4500;
   function restore(catalog, raw) {
     const recent = {};
@@ -828,13 +829,13 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   }
   function select(catalog, number, recent = {}, random = Math.random) {
     if (!Object.hasOwn(catalog, number)) return null;
-    if (number <= 100 && random() >= LOW_NUMBER_CHANCE) return null;
+    if (number <= LOW_NUMBER_MAX && random() >= LOW_NUMBER_CHANCE) return null;
     const lines = catalog[number];
     const choices = lines.map((_, index) => index).filter(index => index !== recent[number]);
     const index = choices[Math.floor(random() * choices.length)];
     return { number, index, text: lines[index] };
   }
-  const api = { LOW_NUMBER_CHANCE, COOLDOWN_MS, restore, select };
+  const api = { LOW_NUMBER_CHANCE, LOW_NUMBER_MAX, COOLDOWN_MS, restore, select };
   if (typeof module !== 'undefined') module.exports = api;
   else root.BlobMilestones = api;
 })(globalThis);
@@ -1018,7 +1019,7 @@ for(const channel of ['music','sfx'])$(channel+'-volume').oninput=event=>{sound.
 window.setAudioBackgrounded=hidden=>sound.setBackground(hidden);
 $('sound-toggle').onclick=()=>{sound.setEnabled(!sound.enabled);save();render()};
 document.addEventListener('visibilitychange',()=>sound.setBackground(document.hidden));
-let bookmark=state.status==='dead'?null:BlobStory.restore(stories,saved?.story);
+let bookmark=BlobStory.restore(stories,saved?.story);
 let milestoneRecent=BlobMilestones.restore(milestones,saved?.milestoneRecent);
 function save(){try{localStorage.setItem(key,JSON.stringify({...state,story:bookmark,milestoneRecent,soundEnabled:sound.enabled,audioSettings:{musicVolume:sound.musicVolume,sfxVolume:sound.sfxVolume}}))}catch(e){storage=false}$('save-warning').hidden=storage}
 const canvas=document.querySelector('#blob canvas'),ctx=canvas.getContext('2d'),sheet=new Image();
@@ -1055,7 +1056,7 @@ function conversationState(kind){
   $('conversation').dataset.state=kind;
   $('story-mode').textContent={story:'Story time',aside:'Quick interruption!',resumed:'Back to the story',dead:'Well… splat.',won:'WE ACTUALLY DID IT!'}[kind];
   const story=bookmark?stories.find(item=>item.id===bookmark.storyId):null;
-  $('story-title').textContent=kind==='dead'?'New blob. New train of thought.':kind==='won'?'Fifty thousand. Still squishy.':story?.title??'';
+  $('story-title').textContent=kind==='dead'?'New blob. Same unfinished story.':kind==='won'?'Fifty thousand. Still squishy.':story?.title??'';
   $('paused-story').hidden=kind!=='aside';
   $('story-transition').hidden=kind!=='resumed';
   if(kind==='aside'&&bookmark)$('paused-story-text').textContent=BlobStory.current(stories,bookmark).text;
@@ -1067,9 +1068,9 @@ if(bookmark)showStory();
 if(state.status==='won'){$('speech').textContent=milestones[BlobGame.GOAL][milestoneRecent[BlobGame.GOAL]??0];conversationState('won')}
 if(state.status==='dead')conversationState('dead');
 save();
-function tap(){if(screen!=='game'||!ready||state.status!=='alive')return;sound.unlock();const result=BlobGame.tap(state);if(result.event!=='boom')sound.play('tap');state=result.state;if(result.event==='boom'){bookmark=null;interrupted=false;conversationState('dead');play('boom');unlockAt=performance.now()+780;$('restart').disabled=true;$('speech').textContent=`${fmt(result.lost)} clicks. There goes my train of thought. And my everything.`;setTimeout(()=>{$('restart').disabled=false},780)}else if(result.event==='win'){play('idle');milestone(BlobGame.GOAL);conversationState('won')}else{if(mode!=='tap')play('tap');const now=performance.now();const commented=!interrupted&&now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){if(interrupted){showStory(true)}else{bookmark=BlobStory.advance(stories,bookmark);showStory()}}}save();render()}
+function tap(){if(screen!=='game'||!ready||state.status!=='alive')return;sound.unlock();const result=BlobGame.tap(state);if(result.event!=='boom')sound.play('tap');state=result.state;if(result.event==='boom'){interrupted=false;conversationState('dead');play('boom');unlockAt=performance.now()+780;$('restart').disabled=true;$('speech').textContent=`${fmt(result.lost)} clicks. Hold that thought. I've become floor.`;setTimeout(()=>{$('restart').disabled=false},780)}else if(result.event==='win'){play('idle');milestone(BlobGame.GOAL);conversationState('won')}else{if(mode!=='tap')play('tap');const now=performance.now();const commented=!interrupted&&now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){if(interrupted){showStory(true)}else{bookmark=BlobStory.advance(stories,bookmark);showStory()}}}save();render()}
 $('blob').onclick=tap;
-$('restart').onclick=()=>{if(performance.now()<unlockAt)return;sound.stop();sound.unlock();state=BlobGame.restart(state);bookmark=BlobStory.choose(stories,null);nextMilestoneAt=0;showStory();save();play('idle');render()};
+$('restart').onclick=()=>{if(performance.now()<unlockAt)return;sound.stop();sound.unlock();state=BlobGame.restart(state);bookmark=BlobStory.restore(stories,bookmark);nextMilestoneAt=0;showStory(true);save();play('idle');render()};
 function draw(now){let a=animations[mode],index=Math.floor((now-started)/a.ms);if(mode==='tap'&&index>=a.frames.length){play(state.run>=15?'nervous':'idle');a=animations[mode];index=0}if(reducedMotion.matches&&(mode==='idle'||mode==='nervous'))index=0;const frame=a.frames[mode==='boom'?Math.min(index,5):index%a.frames.length],w=sheet.naturalWidth/6,h=sheet.naturalHeight/4;ctx.clearRect(0,0,384,384);ctx.drawImage(sheet,(frame%6)*w,Math.floor(frame/6)*h,w,h,0,0,384,384);for(const id of ['menu-canvas','ads-canvas']){const target=$(id);if(!target.parentElement.hidden){const c=target.getContext('2d'),f=reducedMotion.matches?0:[0,1,2,3,4,5][Math.floor(now/180)%6];c.clearRect(0,0,320,320);c.drawImage(sheet,f*w,0,w,h,0,0,320,320)}}requestAnimationFrame(draw)}
 sheet.onload=()=>{ready=true;if(state.status==='dead'){started=-100000;$('speech').textContent="Still puddles. Ready when you are."}render();requestAnimationFrame(draw)};
 sheet.onerror=()=>{$('speech').textContent='The blob image could not load. Please reopen the file.'};

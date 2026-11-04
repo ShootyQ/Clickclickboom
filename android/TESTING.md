@@ -43,7 +43,7 @@ CI builds the Android instrumentation APK and launches an API 36 emulator. The s
 - Close the app fully and reopen; confirm the surviving run and story bookmark remain.
 - Use both Android Back gestures/buttons and in-app menu buttons. Back returns to the menu, then leaves the app from the menu.
 - Rotate the device and background/resume the app. Confirm progress remains and controls avoid the status bar, camera cutout, and navigation bar.
-- Continue until an explosion: puddles remain, score resets, and restarting begins a new story.
+- Continue until an explosion: puddles remain, score resets, and restarting resumes the same story beat, including after closing/reopening the app while dead.
 - Open **Remove Ads**: the test build clearly states purchases are unavailable, shows no ads, and never launches a payment prompt.
 
 There is no billing SDK, AdMob integration, or online leaderboard in this version. Remove Ads is a navigation and information screen; purchase and restore entitlement behavior requires the later Google Play Billing integration. Statistics and scores are local, not server-validated. Debug APKs use debug signing and allow WebView inspection through Chrome's `chrome://inspect` with USB debugging enabled; the Play AAB uses the dedicated upload key and disables that inspection.
