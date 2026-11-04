@@ -66,6 +66,7 @@
 <script>/* STORE_CORE */</script>
 <script>
 const $=id=>document.getElementById(id),key='clickclickboom.v1',fmt=n=>n.toLocaleString();
+document.addEventListener('contextmenu',event=>event.preventDefault());
 const audioDialog=$('audio-dialog');
 $('audio-open').onclick=()=>{audioDialog.showModal();sound.unlock()};
 $('audio-close').onclick=()=>audioDialog.close();

@@ -72,6 +72,8 @@ public final class MainActivity extends ComponentActivity {
         game.setId(R.id.game_webview);
         game.setBackgroundColor(cream);
         game.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        // Keep long presses from opening WebView selection handles or a context menu.
+        game.setOnLongClickListener(view -> true);
         WebSettings settings = game.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
