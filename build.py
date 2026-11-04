@@ -49,10 +49,10 @@ assert stories, 'At least one story is required'
 catalog = json.dumps(stories, ensure_ascii=False).replace('<', '\\u003c')
 favicon = base64.b64encode((root / 'assets/ui/favicon-48.png').read_bytes()).decode()
 sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes()).decode()
-def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music, page_victory_music, page_victory_sprite):
+def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music, page_victory_music, page_victory_sprite, page_catalog=catalog, page_story_script=""):
     return (shell.replace('/* GAME_CORE */', core).replace('/* FINALE_CORE */', finale_core).replace('/* FONT_LICENSES */', font_licenses)
     .replace('/* FAVICON_ART */', page_icon).replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
-    .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', catalog)
+    .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', page_catalog).replace('/* STORY_SCRIPT */', page_story_script)
     .replace('/* MILESTONE_CORE */', milestone_core).replace('/* HAPPY_CORE */', happy_core)
     .replace('/* HAPPY_CATALOG */', json.dumps(happy_rants, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
@@ -70,11 +70,16 @@ victory_sprite = 'data:image/png;base64,' + base64.b64encode((root / 'assets/blo
 # in the Android Java heap, WebView IPC, HTML parser, and JavaScript strings.
 dist = root / 'dist'
 dist.mkdir(exist_ok=True)
+# Keep the growing story collection out of the entry document. A local classic
+# script loads before the controller, including offline in Android and file previews.
+story_script = dist / 'assets/content/stories.js'
+story_script.parent.mkdir(parents=True, exist_ok=True)
+story_script.write_text('globalThis.SplatStories = ' + catalog + ';\n')
 streaming_style = base_style.replace('/* BUTTON_ART */', 'assets/ui/menu-buttons.png').replace('/* GAME_PANEL_ART */', 'assets/ui/game-panel.png').replace('/* HAND_FONT */', 'assets/fonts/PatrickHand-Regular.ttf').replace('/* TITLE_FONT */', 'assets/fonts/LilitaOne-Regular.ttf')
 streaming_sounds = {name: 'assets/audio/' + filename for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
 streaming_music = [{'title': title, 'src': 'assets/music/' + filename} for title, filename in music_tracks]
 streaming_death_music = {'title': 'The Last Squirt', 'src': 'assets/music/the-last-squirt.mp3'}
-(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png', streaming_death_music, {'title': 'VICTORY', 'src': 'assets/music/victory.mp3'}, 'assets/blob/blob-victory-sprites.png'))
+(dist / 'index.html').write_text(render(streaming_style, 'assets/ui/logo.png', streaming_sounds, streaming_music, 'assets/blob/blob-sprites-v3.png', 'assets/ui/favicon-48.png', streaming_death_music, {'title': 'VICTORY', 'src': 'assets/music/victory.mp3'}, 'assets/blob/blob-victory-sprites.png', page_catalog='globalThis.SplatStories', page_story_script='<script src="assets/content/stories.js"></script>'))
 shutil.copyfile(root / 'privacy.html', dist / 'privacy.html')
 asset_paths = ['blob/blob-victory-sprites.png', 'music/victory.mp3', 'ui/favicon-48.png', 'ui/app-icon-512.png', 'blob/blob-sprites-v3.png', 'ui/logo.png', 'ui/menu-buttons.png', 'ui/game-panel.png',
                'audio/tap.wav', 'audio/exploding.wav', 'audio/explosionlanding.wav',
@@ -86,7 +91,7 @@ for relative in asset_paths:
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(root / 'assets' / relative, destination)
 assert (dist / 'index.html').stat().st_size < 1024 * 1024, 'Startup page must remain below 1 MiB'
-print(f'Streaming entry page: {(dist / "index.html").stat().st_size:,} bytes; media and art are separate files.')
+print(f'Streaming entry page: {(dist / "index.html").stat().st_size:,} bytes; stories, media and art are separate files.')
 print('Built index.html with embedded game logic and PNG sprites.')
 print(f'Embedded {len(stories)} stories, {sum(len(story["beats"]) for story in stories)} dialogue beats.')
 print(f'Embedded {len(milestones)} milestones and {sum(map(len, milestones.values()))} reactions.')
