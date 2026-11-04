@@ -6,16 +6,19 @@ import android.content.ActivityNotFoundException;
 import android.net.Uri;
 import android.widget.Toast;
 import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.OnBackPressedCallback;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 import androidx.webkit.WebMessageCompat;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebResourceError;
@@ -44,28 +47,26 @@ public final class MainActivity extends ComponentActivity {
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override public void onCreate(Bundle savedInstanceState) {
+        // The game always uses light paper backgrounds, including in system dark mode.
+        EdgeToEdge.enable(this, SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         int cream = Color.rgb(255, 244, 223);
-        getWindow().setStatusBarColor(cream);
-        getWindow().setNavigationBarColor(cream);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         root = new FrameLayout(this);
+        root.setId(R.id.game_root);
         root.setBackgroundColor(cream);
-        root.setOnApplyWindowInsetsListener((view, insets) -> {
-            if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(
-                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            } else {
-                view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                        insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
-            }
-            return insets.consumeSystemWindowInsets();
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
+            Insets safe = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            // Both the native banner and WebView share this safe content rectangle.
+            // Set absolute padding on every dispatch so rotation never accumulates it.
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+            return WindowInsetsCompat.CONSUMED;
         });
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         FrameLayout bannerContainer = new FrameLayout(this);
+        bannerContainer.setId(R.id.banner_container);
         bannerContainer.setContentDescription("Advertisement");
         content.addView(bannerContainer, new LinearLayout.LayoutParams(-1, -2));
         game = new WebView(this);
@@ -138,7 +139,7 @@ public final class MainActivity extends ComponentActivity {
                     });
         }
         setContentView(root);
-        root.requestApplyInsets();
+        ViewCompat.requestApplyInsets(root);
         // Stream local files instead of copying a huge base64 HTML string through
         // the Java heap and WebView IPC. The origin stays unchanged for saves.
         game.loadUrl("https://appassets.androidplatform.net/assets/index.html");

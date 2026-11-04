@@ -33,7 +33,7 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 The Gradle asset task packages **`dist/`**, including its small entry page and separate images/audio; rebuild it with `python3 build.py` after changing stories, dialogue, or JavaScript. Android loads `https://appassets.androidplatform.net/assets/index.html` through a local asset loader, preserving the existing localStorage origin. It does not copy the legacy standalone base64 HTML into Java memory or download content from the website. Existing browser saves do not transfer to the Android app.
 
-CI builds the Android instrumentation APK and launches an API 36 emulator. The startup test must find the rendered game title, full logo, native store bridge, and all three decoded SFX buffers. To run it with a connected emulator or phone locally: `./gradlew connectedDebugAndroidTest` from `android/`.
+CI builds the Android instrumentation APK and launches Android 15/API 35 and Android 16/API 36 emulators. The startup test must find the rendered game title, full logo, native store bridge, and all three decoded SFX buffers. To run it with a connected emulator or phone locally: `./gradlew connectedDebugAndroidTest` from `android/`.
 
 ## Phone checks
 
@@ -74,3 +74,11 @@ In Play Console, create the new app, open **Testing → Internal testing**, crea
 See [MONETIZATION.md](MONETIZATION.md). Test IDs are the default, and purchasing stays disabled until the Play public key and one-time product are configured. The native SDKs use the network, while the game assets and statistics remain local. Use a Play license-test account to verify checkout; internal-track access alone does not prevent real charges.
 
 - Music: confirm Slimey Breeze → Slimey Breezy Day → Squish Squish 3 → Slimey Breeze. On explosion, The Last Squirt starts immediately and loops until Menu or New Game. Confirm no overlap, Music/mute controls affect both music modes, SFX volume does not mute the song, and background/resume keeps the correct mode.
+
+## System bars and safe areas
+
+The Activity uses AndroidX `EdgeToEdge.enable()` with dark system-bar icons over the cream background. `WindowInsetsCompat` reserves the union of system bars and display cutouts once around the native banner and WebView. Rotation replaces the padding rather than adding to it. App code does not call the deprecated framework system-bar color, visibility or inset-consumption APIs directly.
+
+`EdgeToEdgeTest` checks native bounds and visible HTML controls in portrait and landscape with 0, 50 and 90 dp native banner reservations. CI runs it with a simulated tall camera cutout under both gesture and three-button navigation, on Android 15 and 16. Native screenshots and test logs are retained in the per-API startup-result artifacts. Reservations are created only by instrumentation; they do not load or fabricate ad impressions.
+
+The app selects supported AndroidX Fragment 1.9.1 through a dependency constraint, upgrading the old 1.1.0 requested by Google Play Services. Activity 1.13.0 and Core 1.18.0 support the existing compile SDK 36 toolchain. After uploading a new AAB, check Play Console's report for that version; historical reports for earlier releases remain separate.

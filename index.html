@@ -767,6 +767,16 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
  .victory-actions button{font-size:15px;padding:4px}
  .victory-cheer{font-size:14px;min-height:44px;padding:4px 6px}
 }
+
+/* Native banners plus navigation buttons can leave very little landscape height. */
+@media (orientation: landscape) and (max-height: 260px) {
+  #audio-dialog { width: min(94vw, 520px); }
+  #audio-dialog .audio-panel .audio-levels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
+  #audio-dialog label[for='music-volume'] { grid-column: 1; grid-row: 1; }
+  #audio-dialog #music-volume { grid-column: 1; grid-row: 2; }
+  #audio-dialog label[for='sfx-volume'] { grid-column: 2; grid-row: 1; }
+  #audio-dialog #sfx-volume { grid-column: 2; grid-row: 2; }
+}
 </style>
 <main>
 <div class="ad-slot" id="ad-slot" role="complementary" aria-label="Advertisement"><span>Advertisement</span></div>
@@ -819,7 +829,7 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 <div class="victory-actions"><button class="action" id="victory-restart">Another little guy?</button><button class="back" id="victory-menu">← Menu</button></div>
 <p class="victory-note">Your personal best is saved. Take a screenshot. You earned this.</p>
 </section><footer>SMALL BLOB. BIG AMBITIONS.</footer></main>
-<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><div><h2 id="audio-title">Music &amp; squishes</h2><a class="privacy-policy-link" id="privacy-policy-link" href="https://shootyq.github.io/Clickclickboom/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"><p>Set either slider to zero to mute it.</p></details><div class="audio-actions"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button><button class="back" id="privacy-options" hidden>Ad privacy</button></div></dialog>
+<dialog id="audio-dialog" aria-labelledby="audio-title"><div class="audio-heading"><div><h2 id="audio-title">Music &amp; squishes</h2><a class="privacy-policy-link" id="privacy-policy-link" href="https://shootyq.github.io/Clickclickboom/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div><button class="back" id="audio-close" aria-label="Close audio settings">✕</button></div><details class="audio-panel" id="audio-settings" open><summary>Make yourself comfortable.</summary><div class="audio-levels"><label for="music-volume">Music <output id="music-volume-value" for="music-volume">35%</output></label><input id="music-volume" type="range" min="0" max="100" step="1" value="35"><label for="sfx-volume">Sound effects <output id="sfx-volume-value" for="sfx-volume">65%</output></label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="65"></div><p>Set either slider to zero to mute it.</p></details><div class="audio-actions"><button class="back" id="sound-toggle" aria-pressed="true">Sound: On</button><button class="back" id="privacy-options" hidden>Ad privacy</button></div></dialog>
 
 <script>(function (root) {
   'use strict';

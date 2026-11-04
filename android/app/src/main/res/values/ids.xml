@@ -1,3 +1,5 @@
 <resources>
+    <item name="game_root" type="id" />
+    <item name="banner_container" type="id" />
     <item name="game_webview" type="id" />
 </resources>

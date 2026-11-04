@@ -271,3 +271,13 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
  .victory-actions button{font-size:15px;padding:4px}
  .victory-cheer{font-size:14px;min-height:44px;padding:4px 6px}
 }
+
+/* Native banners plus navigation buttons can leave very little landscape height. */
+@media (orientation: landscape) and (max-height: 260px) {
+  #audio-dialog { width: min(94vw, 520px); }
+  #audio-dialog .audio-panel .audio-levels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
+  #audio-dialog label[for='music-volume'] { grid-column: 1; grid-row: 1; }
+  #audio-dialog #music-volume { grid-column: 1; grid-row: 2; }
+  #audio-dialog label[for='sfx-volume'] { grid-column: 2; grid-row: 1; }
+  #audio-dialog #sfx-volume { grid-column: 2; grid-row: 2; }
+}

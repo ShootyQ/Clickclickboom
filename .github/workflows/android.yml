@@ -88,7 +88,11 @@ jobs:
         run: rm -f "$RUNNER_TEMP/splat-upload.p12"
 
   startup:
-    name: Launch on Android emulator
+    name: Android ${{ matrix.api }} startup and safe areas
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [35, 36]
     needs: android
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -117,7 +121,7 @@ jobs:
           echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
           profile: pixel_6
@@ -130,9 +134,21 @@ jobs:
             cat launch-test/instrumentation.txt
             adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > launch-test/logcat.txt
             grep -q 'OK (2 tests)' launch-test/instrumentation.txt
+            adb shell cmd overlay enable-exclusive --category com.android.internal.display.cutout.emulation.tall
+            for navigation in gestural threebutton; do
+              adb shell cmd overlay enable-exclusive --category "com.android.internal.systemui.navbar.$navigation"
+              adb shell am instrument -w -r -e class com.shootyq.clickclickboom.EdgeToEdgeTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > "launch-test/insets-$navigation.txt"
+              cat "launch-test/insets-$navigation.txt"
+              adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > "launch-test/logcat-$navigation.txt"
+              grep -q 'OK (1 test)' "launch-test/insets-$navigation.txt"
+              mkdir -p "launch-test/screenshots-$navigation"
+              adb pull /sdcard/Android/data/com.shootyq.clickclickboom.debug/files/edge-to-edge/. "launch-test/screenshots-$navigation/"
+            done
       - name: Retain startup result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-startup-result
-          path: launch-test/*.txt
+          name: android-startup-result-api-${{ matrix.api }}
+          path: |
+            launch-test/*.txt
+            launch-test/**/*.png
