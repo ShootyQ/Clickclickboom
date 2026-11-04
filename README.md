@@ -47,3 +47,9 @@ The approved icon source is `assets/ui/app-icon-original.png`; `assets/ui/app-ic
 `node tests/story-continuity.cjs` (with Playwright installed, or `PLAYWRIGHT_MODULE` set) checks an existing 8,000-tap save through interruption, explosion, reopening while dead, restarting, and continued story advancement. Old dead saves that already lost their bookmark recover a new story once.
 
 `node tests/music-playback.cjs` with Playwright verifies actual MP3 playback and looping, Music/SFX controls, background/mute behavior, and both ways out of the death loop. Android CI also taps the real game and observes a complete The Last Squirt loop before testing Menu/New Game.
+
+### Happy rants
+
+`content/happy-rants.json` contains 20 affectionate pep talks of 12 lines each. On an eligible surviving tap with no active interruption, the chance to start is 1 in 500. At most two start per run, separated by at least 500 surviving clicks measured from the previous activation. The quota, activation count, and current rant line persist across reloads. A new blob resets the per-run limits while avoiding an immediate repeat of the last rant. Explosions end a rant and preserve the underlying story bookmark.
+
+Rants display one line at a time using reading delays, with pink speech panels, small hearts, a line counter, and the paused story preview. Normal taps continue scoring; unread lines are not skipped. Milestone comments wait until the rant is finished; the original story line is then replayed with the return cue. Menu visits pause the reading timer. Reduced-motion preferences disable the decorative heart bob. Run `node tests/happy.test.js` for probability, caps, cooldown, save/restore, and content checks.

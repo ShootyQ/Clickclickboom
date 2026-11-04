@@ -216,3 +216,23 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
 
 .privacy-policy-link { display: inline-block; color: var(--ink); font: 13px/16px 'Patrick Hand', cursive; text-underline-offset: 2px; }
 .privacy-policy-link:focus-visible { outline: 2px solid #8f281c; outline-offset: 3px; }
+
+/* Happy rants share the story's small-screen layout and keep its bookmark visible. */
+#conversation[data-state='happy'] { grid-template-areas: 'ribbon' 'title' 'pause' 'speech'; grid-template-rows: 24px 16px 30px auto; }
+#conversation[data-state='happy'] #story-mode { background: #ffd2cb; border-color: #a95950; color: #7a302e; }
+#conversation[data-state='happy'] .paused-story { background: #f9e6d7; border-color: #bb8f76; }
+#conversation[data-state='happy'] .speech { background-color: #fff0e9; transform: none; }
+#conversation[data-state='happy'] .speech::after { background: #fff0e9; }
+#conversation[data-state='happy'] .story-doodle { color: #b94c48; }
+.happy-hearts { grid-area: speech; position: relative; pointer-events: none; z-index: 2; min-width: 0; min-height: 0; }
+.happy-hearts > span { position: absolute; color: #d55251; font: 18px/1 sans-serif; text-shadow: 1px 1px #fff2dc; animation: heart-bob 1.8s ease-in-out infinite; }
+.happy-hearts > span:nth-child(1) { left: 18px; top: -6px; transform: rotate(-14deg); }
+.happy-hearts > span:nth-child(2) { right: 18px; top: -9px; font-size: 22px; animation-delay: -.6s; }
+.happy-hearts > span:nth-child(3) { right: 44px; bottom: -5px; font-size: 14px; animation-delay: -1.2s; }
+@keyframes heart-bob { 0%,100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+@media (orientation: landscape) and (max-height: 520px) {
+  #conversation[data-state='happy'] { grid-template-rows: 22px 14px 24px auto; }
+  .happy-hearts > span { font-size: 14px; }
+  .happy-hearts > span:nth-child(2) { font-size: 17px; top: -6px; }
+}
+@media (prefers-reduced-motion: reduce) { .happy-hearts > span { animation: none; } }

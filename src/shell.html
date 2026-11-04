@@ -35,6 +35,7 @@
 <div class="story-ribbon"><span id="story-mode">Story time</span><span class="story-doodle" aria-hidden="true">✎</span></div>
 <div class="story-title" id="story-title"></div>
 <div class="paused-story" id="paused-story" hidden><span>STORY PAUSED · SAVED YOUR PLACE</span><p id="paused-story-text"></p></div>
+<span class="happy-hearts" id="happy-hearts" aria-hidden="true" hidden><span>♥</span><span>♥</span><span>♥</span></span>
 <div class="speech" id="speech" aria-live="polite">Hi. I'm rooting for us. Mostly because I'm us.</div>
 <p class="story-transition" id="story-transition" hidden>↳ Anyway, back to the story…</p>
 </section>
@@ -49,6 +50,7 @@
 <script>/* GAME_CORE */</script>
 <script>/* STORY_CORE */</script>
 <script>/* MILESTONE_CORE */</script>
+<script>/* HAPPY_CORE */</script>
 <script>/* AUDIO_CORE */</script>
 <script>/* STORE_CORE */</script>
 <script>
@@ -60,6 +62,7 @@ audioDialog.addEventListener('click',event=>{if(event.target===audioDialog){cons
 window.setAdBannerHeight=height=>{if(Number.isFinite(height))document.documentElement.style.setProperty('--ad-banner-height',Math.max(0,Math.min(120,height))+'px')};
 const stories=/* STORY_CATALOG */;
 const milestones=/* MILESTONE_CATALOG */;
+const happyRants=/* HAPPY_CATALOG */;
 let state=BlobGame.restore(null),storage=true,saved=null;
 try{saved=JSON.parse(localStorage.getItem(key));state=BlobGame.restore(saved)}catch(e){storage=false}
 const sound=new BlobAudio(/* AUDIO_FILES */,saved?.soundEnabled!==false,saved?.audioSettings??{},/* MUSIC_FILES */,/* DEATH_MUSIC_FILE */);
@@ -69,7 +72,9 @@ $('sound-toggle').onclick=()=>{sound.setEnabled(!sound.enabled);save();render()}
 document.addEventListener('visibilitychange',()=>sound.setBackground(document.hidden));
 let bookmark=BlobStory.restore(stories,saved?.story);
 let milestoneRecent=BlobMilestones.restore(milestones,saved?.milestoneRecent);
-function save(){try{localStorage.setItem(key,JSON.stringify({...state,story:bookmark,milestoneRecent,soundEnabled:sound.enabled,audioSettings:{musicVolume:sound.musicVolume,sfxVolume:sound.sfxVolume}}))}catch(e){storage=false}$('save-warning').hidden=storage}
+let happy=BlobHappy.restore(happyRants,saved?.happy);
+if(state.status!=='alive')happy=BlobHappy.cancel(happy);
+function save(){try{localStorage.setItem(key,JSON.stringify({...state,story:bookmark,milestoneRecent,happy,soundEnabled:sound.enabled,audioSettings:{musicVolume:sound.musicVolume,sfxVolume:sound.sfxVolume}}))}catch(e){storage=false}$('save-warning').hidden=storage}
 const canvas=document.querySelector('#blob canvas'),ctx=canvas.getContext('2d'),sheet=new Image();
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const animations={idle:{frames:[0,1,2,3,4,5],ms:150},tap:{frames:[6,7,8,9,10,11],ms:65},nervous:{frames:[12,13,14,13,15,16,15,17],ms:120},boom:{frames:[18,19,20,21,22,23],ms:130}};
@@ -102,24 +107,38 @@ function render(){ $('game-screen').dataset.runState=state.status; for(const cha
 let nextLineAt=0,interrupted=false,nextMilestoneAt=0;
 function conversationState(kind){
   $('conversation').dataset.state=kind;
-  $('story-mode').textContent={story:'Story time',aside:'Quick interruption!',resumed:'Back to the story',dead:'Well… splat.',won:'WE ACTUALLY DID IT!'}[kind];
+  $('story-mode').textContent={story:'Story time',aside:'Quick interruption!',happy:'A little love ♥',resumed:'Back to the story',dead:'Well… splat.',won:'WE ACTUALLY DID IT!'}[kind];
   const story=bookmark?stories.find(item=>item.id===bookmark.storyId):null;
   $('story-title').textContent=kind==='dead'?'New blob. Same unfinished story.':kind==='won'?'Fifty thousand. Still squishy.':story?.title??'';
-  $('paused-story').hidden=kind!=='aside';
+  $('paused-story').hidden=kind!=='aside'&&kind!=='happy';
+  $('happy-hearts').hidden=kind!=='happy';
   $('story-transition').hidden=kind!=='resumed';
-  if(kind==='aside'&&bookmark)$('paused-story-text').textContent=BlobStory.current(stories,bookmark).text;
+  if((kind==='aside'||kind==='happy')&&bookmark)$('paused-story-text').textContent=BlobStory.current(stories,bookmark).text;
 }
 function showStory(resumed=false){const beat=BlobStory.current(stories,bookmark);conversationState(resumed?'resumed':'story');$('speech').textContent=beat.text;nextLineAt=performance.now()+beat.pauseAfterMs;interrupted=false}
+function showHappy(){const beat=BlobHappy.current(happyRants,happy);if(!beat)return;conversationState('happy');$('story-mode').textContent=`A little love ♥ · ${beat.line}/${beat.total}`;$('speech').textContent=beat.text;nextLineAt=performance.now()+Math.max(1800,600+beat.text.split(/\s+/).length*300);interrupted=false}
 function interrupt(text){conversationState('aside');$('speech').textContent=text;nextLineAt=performance.now()+Math.max(2800,600+text.split(/\s+/).length*300);interrupted=true}
 function milestone(number){const selected=BlobMilestones.select(milestones,number,milestoneRecent);if(!selected)return false;milestoneRecent[number]=selected.index;interrupt(selected.text);nextMilestoneAt=performance.now()+BlobMilestones.COOLDOWN_MS;return true}
-if(bookmark)showStory();
+if(happy.active)showHappy();else if(bookmark)showStory();
 if(state.status==='won'){$('speech').textContent=milestones[BlobGame.GOAL][milestoneRecent[BlobGame.GOAL]??0];conversationState('won')}
 if(state.status==='dead')conversationState('dead');
 save();
-function tap(){if(screen!=='game'||!ready||state.status!=='alive')return;sound.unlock();const result=BlobGame.tap(state);if(result.event!=='boom')sound.play('tap');state=result.state;if(result.event==='boom'){interrupted=false;conversationState('dead');play('boom');unlockAt=performance.now()+780;$('restart').disabled=true;$('speech').textContent=`${fmt(result.lost)} clicks. Hold that thought. I've become floor.`;setTimeout(()=>{$('restart').disabled=false},780)}else if(result.event==='win'){play('idle');milestone(BlobGame.GOAL);conversationState('won')}else{if(mode!=='tap')play('tap');const now=performance.now();const commented=!interrupted&&now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){if(interrupted){showStory(true)}else{bookmark=BlobStory.advance(stories,bookmark);showStory()}}}save();render()}
+function tap(){if(screen!=='game'||!ready||state.status!=='alive')return;sound.unlock();const result=BlobGame.tap(state);if(result.event!=='boom')sound.play('tap');state=result.state;if(result.event==='boom'){happy=BlobHappy.cancel(happy);interrupted=false;conversationState('dead');play('boom');unlockAt=performance.now()+780;$('restart').disabled=true;$('speech').textContent=`${fmt(result.lost)} clicks. Hold that thought. I've become floor.`;setTimeout(()=>{$('restart').disabled=false},780)}else if(result.event==='win'){happy=BlobHappy.cancel(happy);play('idle');milestone(BlobGame.GOAL);conversationState('won')}else{
+  if(mode!=='tap')play('tap');
+  const now=performance.now();
+  if(happy.active){
+    if(now>=nextLineAt){happy=BlobHappy.advance(happyRants,happy);if(happy.active)showHappy();else{showStory(true);nextMilestoneAt=now+BlobMilestones.COOLDOWN_MS}}
+  }else if(interrupted){
+    if(now>=nextLineAt)showStory(true);
+  }else{
+    const nextHappy=BlobHappy.tryStart(happyRants,happy,state.run);
+    if(nextHappy!==happy){happy=nextHappy;showHappy()}
+    else{const commented=now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){bookmark=BlobStory.advance(stories,bookmark);showStory()}}
+  }
+}save();render()}
 $('blob').onclick=tap;
-$('restart').onclick=()=>{if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);bookmark=BlobStory.restore(stories,bookmark);nextMilestoneAt=0;showStory(true);save();play('idle');render()};
-function draw(now){let a=animations[mode],index=Math.floor((now-started)/a.ms);if(mode==='tap'&&index>=a.frames.length){play(state.run>=15?'nervous':'idle');a=animations[mode];index=0}if(reducedMotion.matches&&(mode==='idle'||mode==='nervous'))index=0;const frame=a.frames[mode==='boom'?Math.min(index,5):index%a.frames.length],w=sheet.naturalWidth/6,h=sheet.naturalHeight/4;ctx.clearRect(0,0,384,384);ctx.drawImage(sheet,(frame%6)*w,Math.floor(frame/6)*h,w,h,0,0,384,384);for(const id of ['menu-canvas','ads-canvas']){const target=$(id);if(!target.parentElement.hidden){const c=target.getContext('2d'),f=reducedMotion.matches?0:[0,1,2,3,4,5][Math.floor(now/180)%6];c.clearRect(0,0,320,320);c.drawImage(sheet,f*w,0,w,h,0,0,320,320)}}requestAnimationFrame(draw)}
+$('restart').onclick=()=>{if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);happy=BlobHappy.restart(happy);bookmark=BlobStory.restore(stories,bookmark);nextMilestoneAt=0;showStory(true);save();play('idle');render()};
+function draw(now){let a=animations[mode],index=Math.floor((now-started)/a.ms);if(mode==='tap'&&index>=a.frames.length){play(state.run>=15&&!happy.active?'nervous':'idle');a=animations[mode];index=0}if(reducedMotion.matches&&(mode==='idle'||mode==='nervous'))index=0;const frame=a.frames[mode==='boom'?Math.min(index,5):index%a.frames.length],w=sheet.naturalWidth/6,h=sheet.naturalHeight/4;ctx.clearRect(0,0,384,384);ctx.drawImage(sheet,(frame%6)*w,Math.floor(frame/6)*h,w,h,0,0,384,384);for(const id of ['menu-canvas','ads-canvas']){const target=$(id);if(!target.parentElement.hidden){const c=target.getContext('2d'),f=reducedMotion.matches?0:[0,1,2,3,4,5][Math.floor(now/180)%6];c.clearRect(0,0,320,320);c.drawImage(sheet,f*w,0,w,h,0,0,320,320)}}requestAnimationFrame(draw)}
 sheet.onload=()=>{ready=true;if(state.status==='dead'){started=-100000;$('speech').textContent="Still puddles. Ready when you are."}render();requestAnimationFrame(draw)};
 sheet.onerror=()=>{$('speech').textContent='The blob image could not load. Please reopen the file.'};
 sheet.src='/* SPRITE_DATA */';render();
