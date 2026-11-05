@@ -75,6 +75,7 @@ $('audio-close').onclick=()=>audioDialog.close();
 audioDialog.addEventListener('click',event=>{if(event.target===audioDialog){const rect=audioDialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)audioDialog.close()}});
 window.setAdBannerHeight=height=>{if(Number.isFinite(height))document.documentElement.style.setProperty('--ad-banner-height',Math.max(0,Math.min(120,height))+'px')};
 const stories=/* STORY_CATALOG */;
+const storyTransitions=/* STORY_TRANSITIONS */;
 const milestones=/* MILESTONE_CATALOG */;
 const happyRants=/* HAPPY_CATALOG */;
 let state=BlobGame.restore(null),storage=true,saved=null;
@@ -84,7 +85,7 @@ for(const channel of ['music','sfx'])$(channel+'-volume').oninput=event=>{sound.
 window.setAudioBackgrounded=hidden=>sound.setBackground(hidden);
 $('sound-toggle').onclick=()=>{sound.setEnabled(!sound.enabled);save();render()};
 document.addEventListener('visibilitychange',()=>sound.setBackground(document.hidden));
-let bookmark=BlobStory.restore(stories,saved?.story);
+let bookmark=BlobStory.restore(stories,saved?.story,Math.random,storyTransitions);
 let milestoneRecent=BlobMilestones.restore(milestones,saved?.milestoneRecent);
 let happy=BlobHappy.restore(happyRants,saved?.happy);
 if(state.status!=='alive')happy=BlobHappy.cancel(happy);
@@ -121,15 +122,15 @@ function render(){ $('game-screen').dataset.runState=state.status; for(const cha
 let nextLineAt=0,interrupted=false,nextMilestoneAt=0;
 function conversationState(kind){
   $('conversation').dataset.state=kind;
-  $('story-mode').textContent={story:'Story time',aside:'Quick interruption!',happy:'A little love ♥',resumed:'Back to the story',dead:'Well… splat.',won:'WE ACTUALLY DID IT!',finale:'THE FINAL HUNDRED!'}[kind];
+  $('story-mode').textContent={bridge:'One more story…',story:'Story time',aside:'Quick interruption!',happy:'A little love ♥',resumed:'Back to the story',dead:'Well… splat.',won:'WE ACTUALLY DID IT!',finale:'THE FINAL HUNDRED!'}[kind];
   const story=bookmark?stories.find(item=>item.id===bookmark.storyId):null;
-  $('story-title').textContent=kind==='dead'?'New blob. Same unfinished story.':kind==='won'?'Fifty thousand. Still squishy.':story?.title??'';
+  $('story-title').textContent=kind==='dead'?'New blob. Same unfinished story.':kind==='won'?'Fifty thousand. Still squishy.':bookmark?.transition?'Between stories':story?.title??'';
   $('paused-story').hidden=kind!=='aside'&&kind!=='happy';
   $('happy-hearts').hidden=kind!=='happy';
   $('story-transition').hidden=kind!=='resumed';
-  if((kind==='aside'||kind==='happy')&&bookmark)$('paused-story-text').textContent=BlobStory.current(stories,bookmark).text;
+  if((kind==='aside'||kind==='happy')&&bookmark)$('paused-story-text').textContent=BlobStory.current(stories,bookmark,storyTransitions).text;
 }
-function showStory(resumed=false){const beat=BlobStory.current(stories,bookmark);conversationState(resumed?'resumed':'story');$('speech').textContent=beat.text;nextLineAt=performance.now()+beat.pauseAfterMs;interrupted=false}
+function showStory(resumed=false){const beat=BlobStory.current(stories,bookmark,storyTransitions);conversationState(bookmark.transition?'bridge':resumed?'resumed':'story');$('speech').textContent=beat.text;nextLineAt=performance.now()+beat.pauseAfterMs;interrupted=false}
 function showFinale(){const beat=BlobFinale.current(state.run);if(!beat)return;happy=BlobHappy.cancel(happy);interrupted=false;conversationState('finale');$('story-title').textContent=`${beat.remaining} squishes left · Story saved for later`;$('speech').textContent=beat.text}
 function showHappy(){const beat=BlobHappy.current(happyRants,happy);if(!beat)return;conversationState('happy');$('story-mode').textContent=`A little love ♥ · ${beat.line}/${beat.total}`;$('speech').textContent=beat.text;nextLineAt=performance.now()+Math.max(1800,600+beat.text.split(/\s+/).length*300);interrupted=false}
 function interrupt(text){conversationState('aside');$('speech').textContent=text;nextLineAt=performance.now()+Math.max(2800,600+text.split(/\s+/).length*300);interrupted=true}
@@ -149,11 +150,11 @@ function tap(){if(screen!=='game'||!ready||state.status!=='alive')return;sound.u
   }else{
     const nextHappy=BlobHappy.tryStart(happyRants,happy,state.run);
     if(nextHappy!==happy){happy=nextHappy;showHappy()}
-    else{const commented=now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){bookmark=BlobStory.advance(stories,bookmark);showStory()}}
+    else{const commented=now>=nextMilestoneAt&&milestone(state.run);if(!commented&&now>=nextLineAt){bookmark=BlobStory.advance(stories,bookmark,Math.random,storyTransitions);showStory()}}
   }
 }save();render()}
 $('blob').onclick=tap;
-function newRun(){if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);happy=BlobHappy.restart(happy);bookmark=BlobStory.restore(stories,bookmark);nextMilestoneAt=0;showStory(true);save();play('idle');navigate('game')};
+function newRun(){if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);happy=BlobHappy.restart(happy);bookmark=BlobStory.restore(stories,bookmark,Math.random,storyTransitions);nextMilestoneAt=0;showStory(true);save();play('idle');navigate('game')};
 $('restart').onclick=newRun;$('victory-restart').onclick=newRun;$('victory-menu').onclick=()=>navigate('menu');
 function draw(now){
  const pose=BlobAnimation.sample(mode,now,started,state.run>=15&&!happy.active?'nervous':'idle',reducedMotion.matches);

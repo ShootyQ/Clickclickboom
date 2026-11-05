@@ -18,6 +18,9 @@ for marker, name in [('/* HAND_FONT */', 'PatrickHand-Regular.ttf'), ('/* TITLE_
     style = style.replace(marker, 'data:font/ttf;base64,' + base64.b64encode((root / 'assets/fonts' / name).read_bytes()).decode())
 core = (root / 'src/game.js').read_text()
 story_core = (root / 'src/story.js').read_text()
+story_transitions = json.loads((root / 'content/story-transitions.json').read_text())
+assert len(story_transitions) == 10 and len({item['id'] for item in story_transitions}) == 10
+assert all(3 <= len(item['lines']) <= 5 and all(isinstance(line, str) and line.strip() for line in item['lines']) for item in story_transitions)
 milestone_core = (root / 'src/milestones.js').read_text()
 finale_core = (root / 'src/finale.js').read_text()
 happy_core = (root / 'src/happy.js').read_text()
@@ -53,7 +56,7 @@ sprite = base64.b64encode((root / 'assets/blob/blob-sprites-v3.png').read_bytes(
 def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_icon, page_death_music, page_victory_music, page_victory_sprite, page_catalog=catalog, page_story_script=""):
     return (shell.replace('/* GAME_CORE */', core).replace('/* FINALE_CORE */', finale_core).replace('/* FONT_LICENSES */', font_licenses)
     .replace('/* FAVICON_ART */', page_icon).replace('/* UI_STYLE */', page_style).replace('/* LOGO_ART */', page_logo)
-    .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', page_catalog).replace('/* STORY_SCRIPT */', page_story_script)
+    .replace('/* STORY_TRANSITIONS */', json.dumps(story_transitions, ensure_ascii=False).replace('<', '\\u003c')).replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', page_catalog).replace('/* STORY_SCRIPT */', page_story_script)
     .replace('/* MILESTONE_CORE */', milestone_core).replace('/* HAPPY_CORE */', happy_core)
     .replace('/* HAPPY_CATALOG */', json.dumps(happy_rants, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* ANIMATION_CORE */', animation_core).replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))

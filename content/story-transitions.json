@@ -1,0 +1,12 @@
+[
+  {"id":"one-more", "lines":["That was a good one.","I was there, and I still wanted to know how it ended.","Have you heard this one, though?", "Make yourself comfortable. I've already done that."]},
+  {"id":"check-the-time", "lines":["Anyway. That's how that went.","I'd check the time, but I don't have a watch.","Or anywhere urgent to be.","Which reminds me of another time I should have gone home earlier."]},
+  {"id":"cup-of-tea", "lines":["I could do with a cup of tea after that.","You get one too, if you like. I'll wait.","Actually, I've thought of another story.","Bring the tea with you."]},
+  {"id":"keep-a-diary", "lines":["People keep telling me I should keep a diary.","I did try.","By Wednesday, it wouldn't shut properly.","Here. I'll tell you the next bit instead."]},
+  {"id":"sensible-day", "lines":["You'd think I'd have a sensible day after that.","Stay in. Do a little dusting.","I did intend to.","Then somebody spoke to me, which is usually where it starts."]},
+  {"id":"questions", "lines":["There we are. Another perfectly ordinary thing I managed to be present for.","If you have questions, I probably had the same ones.","Mine went largely unanswered.","Now, this next one started quite innocently."]},
+  {"id":"stretch-break", "lines":["Shall we have a little stretch before the next one?", "I've done mine.","You might have mistaken it for sitting slightly wider.","Right. Where were we? Oh, you'll like this."]},
+  {"id":"short-version", "lines":["That was the short version, by the way.","I left out a sandwich and quite a lot of waiting.","You're welcome.","I've got another one. I'll try to keep any sandwiches relevant."]},
+  {"id":"still-here", "lines":["You're still here!", "Good. I was hoping you would be.","It's much nicer telling these to you than practising them in the bath.","The bath interrupts at all the wrong moments.","Anyway, listen to this."]},
+  {"id":"remembered-one", "lines":["Oh! I've just remembered one.","I'd put it somewhere safe in my head.","Must have been behind all the things I was supposed to do this week.","Never mind those. This is better."]}
+]
