@@ -35,6 +35,7 @@ jobs:
           node tests/milestones.test.js
           node tests/store.test.js
           node tests/audio.test.js
+          node tests/animation.test.js
           node tests/happy.test.js
           node tests/finale.test.js
       - name: Build streaming game

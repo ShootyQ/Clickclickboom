@@ -25,6 +25,7 @@ happy_rants = json.loads((root / 'content/happy-rants.json').read_text())
 assert len(happy_rants) == 20 and len({rant['id'] for rant in happy_rants}) == 20
 assert all(10 <= len(rant['lines']) <= 15 and all(isinstance(line, str) and line.strip() for line in rant['lines']) for rant in happy_rants)
 audio_core = (root / 'src/audio.js').read_text()
+animation_core = (root / 'src/animation.js').read_text()
 store_core = (root / 'src/store.js').read_text()
 sounds = {name: base64.b64encode((root / 'assets/audio' / filename).read_bytes()).decode()
           for name, filename in [('tap', 'tap.wav'), ('exploding', 'exploding.wav'), ('landing', 'explosionlanding.wav')]}
@@ -55,7 +56,7 @@ def render(page_style, page_logo, page_sounds, page_music, page_sprite, page_ico
     .replace('/* STORY_CORE */', story_core).replace('/* STORY_CATALOG */', page_catalog).replace('/* STORY_SCRIPT */', page_story_script)
     .replace('/* MILESTONE_CORE */', milestone_core).replace('/* HAPPY_CORE */', happy_core)
     .replace('/* HAPPY_CATALOG */', json.dumps(happy_rants, ensure_ascii=False).replace('<', '\\u003c'))
-    .replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
+    .replace('/* ANIMATION_CORE */', animation_core).replace('/* AUDIO_CORE */', audio_core).replace('/* STORE_CORE */', store_core).replace('/* AUDIO_FILES */', json.dumps(page_sounds))
     .replace('/* MUSIC_FILES */', json.dumps(page_music)).replace('/* DEATH_MUSIC_FILE */', json.dumps(page_death_music))
     .replace('/* MILESTONE_CATALOG */', json.dumps(milestones, ensure_ascii=False).replace('<', '\\u003c'))
     .replace('/* VICTORY_MUSIC_FILE */', json.dumps(page_victory_music)).replace('/* VICTORY_SPRITE_DATA */', page_victory_sprite).replace('/* SPRITE_DATA */', page_sprite))

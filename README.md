@@ -61,3 +61,9 @@ At 49,900 surviving squishes, the story and other interruptions pause. `src/fina
 A surviving 50,000th tap opens a dedicated victory screen with confetti, eight rotating cheers and three eight-frame blob dances in `assets/blob/blob-victory-sprites.png`. **VICTORY.mp3** immediately replaces the playlist and loops until Menu or a new run. It shares the Music slider, global mute and background pause. A saved winning run can reopen the celebration from the menu; a new run retains the 50,000 personal best and story bookmark. Reduced-motion mode holds the dancer and confetti still.
 
 Run `node tests/finale.test.js`, `node tests/audio.test.js`, and (with Playwright) `node tests/victory-ui.cjs` to verify the countdown, real victory MP3 playback/looping, controls, saved wins and mobile layouts. Android's existing music instrumentation test also completes a real winning tap and checks victory playback, Menu and restarting.
+
+### Tap animation
+
+`src/animation.js` clamps animation time to prevent a frame timestamp just before a tap from selecting a negative sprite index. Each surviving tap adds a bounded spring impulse: the blob squashes and bounces back continuously while its illustrated face keeps its resting cadence. Repeated taps preserve the current deformation, with no overlapping or faded poses. A complete offscreen image replaces the visible canvas in one draw. Reduced motion holds a static resting pose. Explosion frames keep their original 130 ms timing and end in puddles.
+
+Run `node tests/animation.test.js` for timing boundaries and `node tests/animation-ui.cjs` with Playwright for actual canvas visibility/color, rapid-tap scoring, solid color, spring recovery, reduced motion, and final puddles. Android CI repeats the blank-frame regression against real WebView pixels through `AnimationTest`.

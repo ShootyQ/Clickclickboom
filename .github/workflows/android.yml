@@ -34,6 +34,7 @@ jobs:
           node tests/milestones.test.js
           node tests/store.test.js
           node tests/audio.test.js
+          node tests/animation.test.js
           node tests/happy.test.js
           node tests/finale.test.js
           python3 -m unittest discover -s tests -p 'test_*.py'
@@ -131,10 +132,10 @@ jobs:
           script: |
             adb install -r launch-test/app-debug.apk
             adb install -r launch-test/app-debug-androidTest.apk
-            adb shell am instrument -w -r -e class com.shootyq.clickclickboom.StartupTest,com.shootyq.clickclickboom.MusicPlaybackTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > launch-test/instrumentation.txt
+            adb shell am instrument -w -r -e class com.shootyq.clickclickboom.StartupTest,com.shootyq.clickclickboom.MusicPlaybackTest,com.shootyq.clickclickboom.AnimationTest com.squishsquishsplat.launchtests/androidx.test.runner.AndroidJUnitRunner > launch-test/instrumentation.txt
             cat launch-test/instrumentation.txt
             adb logcat -d -s AndroidRuntime:E SplatStartup:E chromium:E > launch-test/logcat.txt
-            grep -q 'OK (2 tests)' launch-test/instrumentation.txt
+            grep -q 'OK (3 tests)' launch-test/instrumentation.txt
             bash android/verify-emulator-layout.sh launch-test
       - name: Retain startup result
         if: always()
