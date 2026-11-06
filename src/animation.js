@@ -3,7 +3,6 @@
   const animations = {
     idle: {frames: [0, 1, 2, 3, 4, 5], ms: 150},
     tap: {duration: 390},
-    nervous: {frames: [12, 13, 14, 13, 15, 16, 15, 17], ms: 120},
     boom: {frames: [18, 19, 20, 21, 22, 23], ms: 130}
   };
   function elapsed(now, started) {
@@ -12,7 +11,8 @@
   }
   function sample(mode, now, started, rest = 'idle', reduced = false) {
     if (!animations[mode]) mode = 'idle';
-    if (rest !== 'nervous') rest = 'idle';
+    // Every living pose stays cheerful, including legacy mood requests.
+    rest = 'idle';
     if (mode === 'tap' && elapsed(now, started) >= animations.tap.duration) {
       started += animations.tap.duration;
       mode = rest;

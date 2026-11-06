@@ -157,7 +157,7 @@ $('blob').onclick=tap;
 function newRun(){if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);happy=BlobHappy.restart(happy);bookmark=BlobStory.restore(stories,bookmark,Math.random,storyTransitions);nextMilestoneAt=0;showStory(true);save();play('idle');navigate('game')};
 $('restart').onclick=newRun;$('victory-restart').onclick=newRun;$('victory-menu').onclick=()=>navigate('menu');
 function draw(now){
- const pose=BlobAnimation.sample(mode,now,started,state.run>=15&&!happy.active?'nervous':'idle',reducedMotion.matches);
+ const pose=BlobAnimation.sample(mode,now,started,'idle',reducedMotion.matches);
  mode=pose.mode;started=pose.started;blobRenderer.draw(pose,now,reducedMotion.matches);
  const w=sheet.naturalWidth/6,h=sheet.naturalHeight/4;
  for(const id of ['menu-canvas','ads-canvas']){

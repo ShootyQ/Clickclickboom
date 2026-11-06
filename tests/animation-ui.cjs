@@ -18,17 +18,17 @@ const server=http.createServer((req,res)=>{const f=path.join(root,req.url==='/'?
   const stats=()=>{const p=ctx.getImageData(0,0,384,384).data;let opaque=0,red=0;for(let i=0;i<p.length;i+=4){if(p[i+3]>128)opaque++;if(p[i+3]>190&&p[i]>120&&p[i+1]<115&&p[i+2]<115)red++}return{opaque,red}};
   window.animationPixels=stats;
   const bad=[];let minOpaque=Infinity,minRed=Infinity,frames=0;
-  const check=label=>{const s=stats();frames++;minOpaque=Math.min(minOpaque,s.opaque);minRed=Math.min(minRed,s.red);if(s.opaque<25000||s.red<12000)bad.push({label,...s})};
+  const check=label=>{const s=stats();const pose=BlobAnimation.sample(mode,animNow,started,'idle');if(pose.frame<0||pose.frame>5)bad.push({label,frame:pose.frame});frames++;minOpaque=Math.min(minOpaque,s.opaque);minRed=Math.min(minRed,s.red);if(s.opaque<25000||s.red<12000)bad.push({label,...s})};
   frameAt(1000);check('initial');play('tap');frameAt(started-.1);check('timestamp before tap');
   for(let t=1016;t<1900;t+=8){frameAt(t);check('single tap '+t)}
   for(let t=2000;t<5000;t+=50){animNow=t+.1;tap();frameAt(t);check('rapid negative timestamp '+t);for(let dt=8;dt<50;dt+=8){frameAt(t+dt);check('rapid '+(t+dt))}}
-  for(let t=5000;t<6000;t+=8){frameAt(t);check('return to nervous '+t)}
+  for(let t=5000;t<6000;t+=8){frameAt(t);check('return to happy idle '+t)}
   const afterRapid={run:state.run,mode};
   const before=canvas.toDataURL();const rejected=blobRenderer.draw({frame:NaN},animNow)===false;const keptFrame=before===canvas.toDataURL();
   window.animationBaseline=stats().opaque;
   return {bad,minOpaque,minRed,frames,afterRapid,rejected,keptFrame};
  });
- assert.deepEqual(result.bad,[]);assert.equal(result.afterRapid.run,73);assert.equal(result.afterRapid.mode,'nervous');
+ assert.deepEqual(result.bad,[]);assert.equal(result.afterRapid.run,73);assert.equal(result.afterRapid.mode,'idle');
  assert(result.rejected&&result.keptFrame);
  // Every tap contributes even when several taps arrive before one paint.
  const burst=await page.evaluate(()=>{animNow=6100;for(let i=0;i<5;i++)tap();frameAt(6099.9);return {run:state.run,pixels:animationPixels()}});
@@ -44,5 +44,5 @@ const server=http.createServer((req,res)=>{const f=path.join(root,req.url==='/'?
  assert(await page.evaluate(()=>{state=BlobGame.restore({run:50000});navigate('victory');frameAt(victoryStarted-.1);const p=$('victory-blob').getContext('2d').getImageData(0,0,384,384).data;let n=0;for(let i=3;i<p.length;i+=4)if(p[i]>128)n++;return n>25000}));
  assert.deepEqual(errors,[]);
  console.log('Animation pixels:',JSON.stringify(result));
- console.log('Blank-frame boundary, continuous spring motion, 60 rapid taps, same-frame burst, mood recovery, explosion puddles, reduced motion and victory timing passed.');
+ console.log('Blank-frame boundary, continuous spring motion, 60 rapid taps, same-frame burst, happy idle recovery, explosion puddles, reduced motion and victory timing passed.');
  }finally{await browser.close();server.close()}})().catch(e=>{console.error(e);process.exitCode=1;server.close()});

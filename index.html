@@ -1215,7 +1215,6 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   const animations = {
     idle: {frames: [0, 1, 2, 3, 4, 5], ms: 150},
     tap: {duration: 390},
-    nervous: {frames: [12, 13, 14, 13, 15, 16, 15, 17], ms: 120},
     boom: {frames: [18, 19, 20, 21, 22, 23], ms: 130}
   };
   function elapsed(now, started) {
@@ -1224,7 +1223,8 @@ footer { grid-row: 4; margin: 0; font: 10px/14px 'Patrick Hand', cursive; letter
   }
   function sample(mode, now, started, rest = 'idle', reduced = false) {
     if (!animations[mode]) mode = 'idle';
-    if (rest !== 'nervous') rest = 'idle';
+    // Every living pose stays cheerful, including legacy mood requests.
+    rest = 'idle';
     if (mode === 'tap' && elapsed(now, started) >= animations.tap.duration) {
       started += animations.tap.duration;
       mode = rest;
@@ -1437,7 +1437,7 @@ $('blob').onclick=tap;
 function newRun(){if(performance.now()<unlockAt)return;sound.stop();sound.endDeathMusic();sound.unlock();state=BlobGame.restart(state);happy=BlobHappy.restart(happy);bookmark=BlobStory.restore(stories,bookmark,Math.random,storyTransitions);nextMilestoneAt=0;showStory(true);save();play('idle');navigate('game')};
 $('restart').onclick=newRun;$('victory-restart').onclick=newRun;$('victory-menu').onclick=()=>navigate('menu');
 function draw(now){
- const pose=BlobAnimation.sample(mode,now,started,state.run>=15&&!happy.active?'nervous':'idle',reducedMotion.matches);
+ const pose=BlobAnimation.sample(mode,now,started,'idle',reducedMotion.matches);
  mode=pose.mode;started=pose.started;blobRenderer.draw(pose,now,reducedMotion.matches);
  const w=sheet.naturalWidth/6,h=sheet.naturalHeight/4;
  for(const id of ['menu-canvas','ads-canvas']){
